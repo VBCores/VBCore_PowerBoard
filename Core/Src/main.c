@@ -72,6 +72,8 @@ typedef struct
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+FDCAN_HandleTypeDef hfdcan1;
+
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
@@ -128,6 +130,7 @@ static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -172,6 +175,7 @@ int main(void)
   MX_TIM7_Init();
   MX_TIM16_Init();
   MX_USART2_UART_Init();
+  MX_FDCAN1_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(300); // prevents MOSFETs torture if board is forced to restart frequently
   
@@ -362,6 +366,49 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief FDCAN1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_FDCAN1_Init(void)
+{
+
+  /* USER CODE BEGIN FDCAN1_Init 0 */
+
+  /* USER CODE END FDCAN1_Init 0 */
+
+  /* USER CODE BEGIN FDCAN1_Init 1 */
+
+  /* USER CODE END FDCAN1_Init 1 */
+  hfdcan1.Instance = FDCAN1;
+  hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
+  hfdcan1.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
+  hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
+  hfdcan1.Init.AutoRetransmission = ENABLE;
+  hfdcan1.Init.TransmitPause = DISABLE;
+  hfdcan1.Init.ProtocolException = DISABLE;
+  hfdcan1.Init.NominalPrescaler = 4;
+  hfdcan1.Init.NominalSyncJumpWidth = 1;
+  hfdcan1.Init.NominalTimeSeg1 = 69;
+  hfdcan1.Init.NominalTimeSeg2 = 10;
+  hfdcan1.Init.DataPrescaler = 4;
+  hfdcan1.Init.DataSyncJumpWidth = 1;
+  hfdcan1.Init.DataTimeSeg1 = 6;
+  hfdcan1.Init.DataTimeSeg2 = 3;
+  hfdcan1.Init.StdFiltersNbr = 0;
+  hfdcan1.Init.ExtFiltersNbr = 0;
+  hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
+  if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN FDCAN1_Init 2 */
+
+  /* USER CODE END FDCAN1_Init 2 */
 
 }
 
@@ -972,10 +1019,10 @@ void power_control(void)
         
         LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
         
-        timestamp = micros();
+        timestamp = micros_64();
         while( LL_GPIO_IsInputPinSet( prime_VIN->PG_port, prime_VIN->PG_pin) ) // wait until PG pin goes low ( PG = OK )
         {
-          if( micros() > timestamp + 10000 ) // the bus didnt reach PG status in 10 ms = abort operation
+          if(micros_64() > timestamp + 10000 ) // the bus didnt reach PG status in 10 ms = abort operation
           {
             LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
             LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -1012,10 +1059,10 @@ void power_control(void)
         {
           emergency_stat = 0;
           
-          timestamp = micros();
+          timestamp = micros_64();
           while( LL_GPIO_IsInputPinSet( BUS_PG_GPIO_Port, BUS_PG_Pin) ) // wait until PG pin goes low ( PG = OK )
           {
-            if( micros() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
+            if(micros_64() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
             {
               LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
               LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -1050,8 +1097,8 @@ void power_control(void)
       if( buzzer_mutex < ALARM )
       {
         buzzer_mutex = ALARM;
-        buzzer_pulse_stamp = micros() + 1000000u;
-        buzzer_period_stamp = micros() + 2000000u;
+        buzzer_pulse_stamp = micros_64() + 1000000u;
+        buzzer_period_stamp = micros_64() + 2000000u;
       }    
     } 
   }
@@ -1064,18 +1111,18 @@ void indication(void)
     if( buzzer_mutex < WARNING )
     {
       buzzer_mutex = WARNING;
-      buzzer_pulse_stamp = micros() + 300000u;
-      buzzer_period_stamp = micros() + 1800000u;
+      buzzer_pulse_stamp = micros_64() + 300000u;
+      buzzer_period_stamp = micros_64() + 1800000u;
     }
   }
   
   if( buzzer_mutex )
   {
-    if( micros() < buzzer_pulse_stamp )
+    if(micros_64() < buzzer_pulse_stamp )
     {
       HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     }
-    else if( micros() < buzzer_period_stamp )
+    else if(micros_64() < buzzer_period_stamp )
     {
       HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
     }
@@ -1135,7 +1182,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 #pragma optimize s=none
 uint64_t micros()
 #elif defined ( __GNUC__ ) /*!< GNU Compiler */
-uint64_t __attribute__((optimize("O0"))) micros()
+uint64_t __attribute__((optimize("O0"))) micros_64()
 #endif
 { 
   return (uint64_t)(__HAL_TIM_GET_COUNTER(&htim7) + 50000u * TIM7_ITs);
@@ -1148,8 +1195,8 @@ void micros_delay( uint64_t delay )
 void __attribute__((optimize("O0"))) micros_delay( uint64_t delay )
 #endif
 {
-  uint64_t timestamp = micros();
-  while( micros() < timestamp + delay );
+  uint64_t timestamp = micros_64();
+  while(micros_64() < timestamp + delay );
 }
 
 void UART2_printf( const char * format, ... )

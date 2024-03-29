@@ -64,7 +64,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-uint64_t micros(void);
+uint64_t micros_64(void);
 void micros_delay( uint64_t delay );
 void UART2_printf( const char * format, ... );
 

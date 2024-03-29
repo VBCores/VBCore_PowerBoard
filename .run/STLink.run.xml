@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="STLink" type="com.jetbrains.cidr.embedded.customgdbserver.type" factoryName="com.jetbrains.cidr.embedded.customgdbserver.factory" PROGRAM_PARAMS="-p 47173 -cp &quot;/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.macos64_2.1.200.202311302303/tools/bin&quot; --frequency 1800 --swd --initialize-reset" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="VBCore_PowerBoard" TARGET_NAME="VBCore_PowerBoard" CONFIG_NAME="Debug-ARM" version="1" RUN_TARGET_PROJECT_NAME="VBCore_PowerBoard" RUN_TARGET_NAME="VBCore_PowerBoard">
+    <custom-gdb-server version="1" gdb-connect="tcp::47173" executable="/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.macos64_2.1.200.202401191126/tools/bin/ST-LINK_gdbserver" warmup-ms="0" download-type="ALWAYS" reset-cmd="monitor reset" reset-type="AFTER_DOWNLOAD">
+      <debugger kind="GDB" isBundled="true" />
+    </custom-gdb-server>
+    <method v="2">
+      <option name="CLION.COMPOUND.BUILD" enabled="true" />
+    </method>
+  </configuration>
+</component>

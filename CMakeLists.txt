@@ -45,14 +45,19 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
 )
 
-# Add sources to executable
+file(GLOB_RECURSE USER_SOURCES "user/*.cpp")
+file(GLOB_RECURSE LIBCXXCANARD_SOURCES "Drivers/libcxxcanard/cyphal/*.cpp" "Drivers/libcxxcanard/libs/*.c")
+file(GLOB_RECURSE LIBVOLTBRO_SOURCES "Drivers/libvoltbro/*.cpp")
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user sources here
+    ${USER_SOURCES}
+    ${LIBVOLTBRO_SOURCES}
+    ${LIBCXXCANARD_SOURCES}
 )
-
-# Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined include paths
+    user
+    Drivers/libcxxcanard
+    Drivers/libcxxcanard/libs
+    Drivers/libvoltbro
 )
 
 # Add project symbols (macros)
