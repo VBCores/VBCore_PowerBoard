@@ -1,4 +1,4 @@
-// This is an AUTO-GENERATED UAVCAN DSDL data type implementation. Curious? See https://opencyphal.org.
+// This is an AUTO-GENERATED Cyphal DSDL data type implementation. Curious? See https://opencyphal.org.
 // You shouldn't attempt to edit this file.
 //
 // Checking this file under version control is not recommended unless it is used as part of a high-SIL
@@ -7,9 +7,9 @@
 // To avoid conflicts with definitions given in the source DSDL file, all entities created by the code generator
 // are named with an underscore at the end, like foo_bar_().
 //
-// Generator:     nunavut-1.9.0 (serialization was enabled)
-// Source file:   /home/pi/control/cyphal-types/voltbro/config/six_step/log.1.0.dsdl
-// Generated at:  2023-12-11 11:36:13.614803 UTC
+// Generator:     nunavut-2.3.1 (serialization was enabled)
+// Source file:   /home/pi/cyphal-types/voltbro/config/six_step/log.1.0.dsdl
+// Generated at:  2024-03-29 15:48:39.924434 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     voltbro.config.six_step.log
@@ -17,13 +17,13 @@
 //
 // Platform
 //     python_implementation:  CPython
-//     python_version:  3.8.10
+//     python_version:  3.10.12
 //     python_release_level:  final
-//     python_build:  ('default', 'May 26 2023 14:05:08')
-//     python_compiler:  GCC 9.4.0
+//     python_build:  ('main', 'Nov 20 2023 15:14:05')
+//     python_compiler:  GCC 11.4.0
 //     python_revision:
 //     python_xoptions:  {}
-//     runtime_platform:  Linux-5.4.0-1097-raspi-aarch64-with-glibc2.29
+//     runtime_platform:  Linux-5.15.0-1049-raspi-aarch64-with-glibc2.35
 //
 // Language Options
 //     target_endianness:  little
@@ -40,19 +40,19 @@
 #include <voltbro/config/six_step/log_item_1_0.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "/home/pi/control/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "/home/pi/control/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "/home/pi/control/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "/home/pi/control/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "/home/pi/control/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/config/six_step/log.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -62,9 +62,15 @@ extern "C" {
 /// This type does not have a fixed port-ID. See https://forum.opencyphal.org/t/choosing-message-and-service-ids/889
 #define voltbro_config_six_step_log_1_0_HAS_FIXED_PORT_ID_ false
 
+// +-------------------------------------------------------------------------------------------------------------------+
+// | voltbro.config.six_step.log.1.0
+// +-------------------------------------------------------------------------------------------------------------------+
 #define voltbro_config_six_step_log_1_0_FULL_NAME_             "voltbro.config.six_step.log"
 #define voltbro_config_six_step_log_1_0_FULL_NAME_AND_VERSION_ "voltbro.config.six_step.log.1.0"
 
+// +-------------------------------------------------------------------------------------------------------------------+
+// | voltbro.config.six_step.log.Request.1.0
+// +-------------------------------------------------------------------------------------------------------------------+
 #define voltbro_config_six_step_log_Request_1_0_FULL_NAME_             "voltbro.config.six_step.log.Request"
 #define voltbro_config_six_step_log_Request_1_0_FULL_NAME_AND_VERSION_ "voltbro.config.six_step.log.Request.1.0"
 
@@ -108,9 +114,7 @@ static inline int8_t voltbro_config_six_step_log_Request_1_0_serialize_(
     {
         return -NUNAVUT_ERROR_INVALID_ARGUMENT;
     }
-
     *inout_buffer_size_bytes = 0U;
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -144,9 +148,7 @@ static inline int8_t voltbro_config_six_step_log_Request_1_0_deserialize_(
     {
         buffer = (const uint8_t*)"";
     }
-
     *inout_buffer_size_bytes = 0U;
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -166,8 +168,9 @@ static inline void voltbro_config_six_step_log_Request_1_0_initialize_(voltbro_c
     }
 }
 
-
-
+// +-------------------------------------------------------------------------------------------------------------------+
+// | voltbro.config.six_step.log.Response.1.0
+// +-------------------------------------------------------------------------------------------------------------------+
 #define voltbro_config_six_step_log_Response_1_0_FULL_NAME_             "voltbro.config.six_step.log.Response"
 #define voltbro_config_six_step_log_Response_1_0_FULL_NAME_AND_VERSION_ "voltbro.config.six_step.log.Response.1.0"
 
@@ -212,8 +215,6 @@ static inline int8_t voltbro_config_six_step_log_Response_1_0_serialize_(
     {
         return -NUNAVUT_ERROR_INVALID_ARGUMENT;
     }
-
-
     const size_t capacity_bytes = *inout_buffer_size_bytes;
     if ((8U * (size_t) capacity_bytes) < 592UL)
     {
@@ -222,11 +223,6 @@ static inline int8_t voltbro_config_six_step_log_Response_1_0_serialize_(
     // Notice that fields that are not an integer number of bytes long may overrun the space allocated for them
     // in the serialization buffer up to the next byte boundary. This is by design and is guaranteed to be safe.
     size_t offset_bits = 0U;
-
-
-
-
-
     {   // voltbro.config.six_step.log_item.1.0 log_item
         size_t _size_bytes0_ = 70UL;  // Nested object (max) size, in bytes.
         offset_bits += 32U;  // Reserve space for the delimiter header.
@@ -241,8 +237,6 @@ static inline int8_t voltbro_config_six_step_log_Response_1_0_serialize_(
         (void) memmove(&buffer[(offset_bits - 32) / 8U], &_size_bytes0_, 4U);
         offset_bits += _size_bytes0_ * 8U;  // Advance by the size of the nested object.
     }
-
-
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad0_ = (uint8_t)(8U - offset_bits % 8U);
@@ -254,13 +248,7 @@ static inline int8_t voltbro_config_six_step_log_Response_1_0_serialize_(
         offset_bits += _pad0_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-
-
-
-
-
     *inout_buffer_size_bytes = (size_t) (offset_bits / 8U);
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -294,16 +282,9 @@ static inline int8_t voltbro_config_six_step_log_Response_1_0_deserialize_(
     {
         buffer = (const uint8_t*)"";
     }
-
-
     const size_t capacity_bytes = *inout_buffer_size_bytes;
     const size_t capacity_bits = capacity_bytes * (size_t) 8U;
     size_t offset_bits = 0U;
-
-
-
-
-
     // voltbro.config.six_step.log_item.1.0 log_item
     {
         // Delimiter header: truncated uint32
@@ -325,13 +306,8 @@ static inline int8_t voltbro_config_six_step_log_Response_1_0_deserialize_(
         // consumed fewer bytes of data. This behavior implements the implicit truncation rule for nested objects.
         offset_bits += _dh0_ * 8U;
     }
-
-
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
     *inout_buffer_size_bytes = (size_t) (nunavutChooseMin(offset_bits, capacity_bits) / 8U);
-
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -350,8 +326,6 @@ static inline void voltbro_config_six_step_log_Response_1_0_initialize_(voltbro_
         (void) err;
     }
 }
-
-
 
 #ifdef __cplusplus
 }

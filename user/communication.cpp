@@ -26,6 +26,7 @@ TYPE_ALIAS(BatteryState, voltbro_battery_state_1_0)
 static constexpr micros BATTERY_INTERVAL_MICROS = 200000u;
 static constexpr micros BUTTONS_INTERVAL_MICROS = 200000u;
 static constexpr CanardPortID BATTERY_INFO_PORT = 7993;
+static constexpr CanardPortID BUTTONS_INFO_PORT = 8003;
 static constexpr CanardPortID SRV_HMI_LED_PORT = 172;
 static constexpr CanardPortID SRV_HMI_BEEPER_PORT = 258;
 const std::string battery_serial_number = "H000061";
@@ -46,9 +47,9 @@ public:
         start_led(
                 (HMI_LED)led_msg.interface.value,
                 (RGB){
-                    .r=static_cast<uint8_t>(led_msg.r.value),
-                    .g=static_cast<uint8_t>(led_msg.g.value),
-                    .b=static_cast<uint8_t>(led_msg.b.value)
+                    .r=led_msg.r.value,
+                    .g=led_msg.g.value,
+                    .b=led_msg.b.value
                 },
                 beeps,
                 led_msg.frequency.hertz
@@ -214,7 +215,7 @@ void report_buttons() {
     buttons_msg.emergency_button.value = (emergency_stat != 0);
     buttons_msg.user_button.value = HAL_GPIO_ReadPin(GPIO4_GPIO_Port, GPIO4_Pin) != GPIO_PIN_SET;
 
-    cyphal_interface->send_msg<PWRButtons>(&buttons_msg, BATTERY_INFO_PORT, &buttons_transfer_id);
+    cyphal_interface->send_msg<PWRButtons>(&buttons_msg, BUTTONS_INFO_PORT, &buttons_transfer_id);
 }
 
 static micros battery_report_time = 0;

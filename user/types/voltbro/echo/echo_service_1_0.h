@@ -1,4 +1,4 @@
-// This is an AUTO-GENERATED UAVCAN DSDL data type implementation. Curious? See https://opencyphal.org.
+// This is an AUTO-GENERATED Cyphal DSDL data type implementation. Curious? See https://opencyphal.org.
 // You shouldn't attempt to edit this file.
 //
 // Checking this file under version control is not recommended unless it is used as part of a high-SIL
@@ -7,9 +7,9 @@
 // To avoid conflicts with definitions given in the source DSDL file, all entities created by the code generator
 // are named with an underscore at the end, like foo_bar_().
 //
-// Generator:     nunavut-1.9.0 (serialization was enabled)
-// Source file:   /home/pi/control/cyphal-types/voltbro/echo/echo_service.1.0.dsdl
-// Generated at:  2023-12-11 11:36:13.162984 UTC
+// Generator:     nunavut-2.3.1 (serialization was enabled)
+// Source file:   /home/pi/cyphal-types/voltbro/echo/echo_service.1.0.dsdl
+// Generated at:  2024-03-29 15:48:40.156820 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     voltbro.echo.echo_service
@@ -17,13 +17,13 @@
 //
 // Platform
 //     python_implementation:  CPython
-//     python_version:  3.8.10
+//     python_version:  3.10.12
 //     python_release_level:  final
-//     python_build:  ('default', 'May 26 2023 14:05:08')
-//     python_compiler:  GCC 9.4.0
+//     python_build:  ('main', 'Nov 20 2023 15:14:05')
+//     python_compiler:  GCC 11.4.0
 //     python_revision:
 //     python_xoptions:  {}
-//     runtime_platform:  Linux-5.4.0-1097-raspi-aarch64-with-glibc2.29
+//     runtime_platform:  Linux-5.15.0-1049-raspi-aarch64-with-glibc2.35
 //
 // Language Options
 //     target_endianness:  little
@@ -40,19 +40,19 @@
 #include <uavcan/primitive/String_1_0.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "/home/pi/control/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "/home/pi/control/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "/home/pi/control/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "/home/pi/control/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "/home/pi/control/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "/home/pi/cyphal-types/voltbro/echo/echo_service.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -62,9 +62,15 @@ extern "C" {
 /// This type does not have a fixed port-ID. See https://forum.opencyphal.org/t/choosing-message-and-service-ids/889
 #define voltbro_echo_echo_service_1_0_HAS_FIXED_PORT_ID_ false
 
+// +-------------------------------------------------------------------------------------------------------------------+
+// | voltbro.echo.echo_service.1.0
+// +-------------------------------------------------------------------------------------------------------------------+
 #define voltbro_echo_echo_service_1_0_FULL_NAME_             "voltbro.echo.echo_service"
 #define voltbro_echo_echo_service_1_0_FULL_NAME_AND_VERSION_ "voltbro.echo.echo_service.1.0"
 
+// +-------------------------------------------------------------------------------------------------------------------+
+// | voltbro.echo.echo_service.Request.1.0
+// +-------------------------------------------------------------------------------------------------------------------+
 #define voltbro_echo_echo_service_Request_1_0_FULL_NAME_             "voltbro.echo.echo_service.Request"
 #define voltbro_echo_echo_service_Request_1_0_FULL_NAME_AND_VERSION_ "voltbro.echo.echo_service.Request.1.0"
 
@@ -109,8 +115,6 @@ static inline int8_t voltbro_echo_echo_service_Request_1_0_serialize_(
     {
         return -NUNAVUT_ERROR_INVALID_ARGUMENT;
     }
-
-
     const size_t capacity_bytes = *inout_buffer_size_bytes;
     if ((8U * (size_t) capacity_bytes) < 2064UL)
     {
@@ -119,11 +123,6 @@ static inline int8_t voltbro_echo_echo_service_Request_1_0_serialize_(
     // Notice that fields that are not an integer number of bytes long may overrun the space allocated for them
     // in the serialization buffer up to the next byte boundary. This is by design and is guaranteed to be safe.
     size_t offset_bits = 0U;
-
-
-
-
-
     {   // uavcan.primitive.String.1.0 ping
         size_t _size_bytes0_ = 258UL;  // Nested object (max) size, in bytes.
         int8_t _err0_ = uavcan_primitive_String_1_0_serialize_(
@@ -135,8 +134,6 @@ static inline int8_t voltbro_echo_echo_service_Request_1_0_serialize_(
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes0_ * 8U;  // Advance by the size of the nested object.
     }
-
-
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad0_ = (uint8_t)(8U - offset_bits % 8U);
@@ -148,13 +145,7 @@ static inline int8_t voltbro_echo_echo_service_Request_1_0_serialize_(
         offset_bits += _pad0_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-
-
-
-
-
     *inout_buffer_size_bytes = (size_t) (offset_bits / 8U);
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -188,16 +179,9 @@ static inline int8_t voltbro_echo_echo_service_Request_1_0_deserialize_(
     {
         buffer = (const uint8_t*)"";
     }
-
-
     const size_t capacity_bytes = *inout_buffer_size_bytes;
     const size_t capacity_bits = capacity_bytes * (size_t) 8U;
     size_t offset_bits = 0U;
-
-
-
-
-
     // uavcan.primitive.String.1.0 ping
     {
         size_t _size_bytes1_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
@@ -209,13 +193,8 @@ static inline int8_t voltbro_echo_echo_service_Request_1_0_deserialize_(
         }
         offset_bits += _size_bytes1_ * 8U;  // Advance by the size of the nested serialized representation.
     }
-
-
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
     *inout_buffer_size_bytes = (size_t) (nunavutChooseMin(offset_bits, capacity_bits) / 8U);
-
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -235,8 +214,9 @@ static inline void voltbro_echo_echo_service_Request_1_0_initialize_(voltbro_ech
     }
 }
 
-
-
+// +-------------------------------------------------------------------------------------------------------------------+
+// | voltbro.echo.echo_service.Response.1.0
+// +-------------------------------------------------------------------------------------------------------------------+
 #define voltbro_echo_echo_service_Response_1_0_FULL_NAME_             "voltbro.echo.echo_service.Response"
 #define voltbro_echo_echo_service_Response_1_0_FULL_NAME_AND_VERSION_ "voltbro.echo.echo_service.Response.1.0"
 
@@ -281,8 +261,6 @@ static inline int8_t voltbro_echo_echo_service_Response_1_0_serialize_(
     {
         return -NUNAVUT_ERROR_INVALID_ARGUMENT;
     }
-
-
     const size_t capacity_bytes = *inout_buffer_size_bytes;
     if ((8U * (size_t) capacity_bytes) < 2064UL)
     {
@@ -291,11 +269,6 @@ static inline int8_t voltbro_echo_echo_service_Response_1_0_serialize_(
     // Notice that fields that are not an integer number of bytes long may overrun the space allocated for them
     // in the serialization buffer up to the next byte boundary. This is by design and is guaranteed to be safe.
     size_t offset_bits = 0U;
-
-
-
-
-
     {   // uavcan.primitive.String.1.0 pong
         size_t _size_bytes2_ = 258UL;  // Nested object (max) size, in bytes.
         int8_t _err3_ = uavcan_primitive_String_1_0_serialize_(
@@ -307,8 +280,6 @@ static inline int8_t voltbro_echo_echo_service_Response_1_0_serialize_(
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes2_ * 8U;  // Advance by the size of the nested object.
     }
-
-
     if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
     {
         const uint8_t _pad1_ = (uint8_t)(8U - offset_bits % 8U);
@@ -320,13 +291,7 @@ static inline int8_t voltbro_echo_echo_service_Response_1_0_serialize_(
         offset_bits += _pad1_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-
-
-
-
-
     *inout_buffer_size_bytes = (size_t) (offset_bits / 8U);
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -360,16 +325,9 @@ static inline int8_t voltbro_echo_echo_service_Response_1_0_deserialize_(
     {
         buffer = (const uint8_t*)"";
     }
-
-
     const size_t capacity_bytes = *inout_buffer_size_bytes;
     const size_t capacity_bits = capacity_bytes * (size_t) 8U;
     size_t offset_bits = 0U;
-
-
-
-
-
     // uavcan.primitive.String.1.0 pong
     {
         size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
@@ -381,13 +339,8 @@ static inline int8_t voltbro_echo_echo_service_Response_1_0_deserialize_(
         }
         offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested serialized representation.
     }
-
-
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
     *inout_buffer_size_bytes = (size_t) (nunavutChooseMin(offset_bits, capacity_bits) / 8U);
-
-
     return NUNAVUT_SUCCESS;
 }
 
@@ -406,8 +359,6 @@ static inline void voltbro_echo_echo_service_Response_1_0_initialize_(voltbro_ec
         (void) err;
     }
 }
-
-
 
 #ifdef __cplusplus
 }
