@@ -45,12 +45,36 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef enum {
+    USER,
+    WARNING,
+    ALARM
+} buzzer_mutex_priorities;
 
+typedef struct
+{
+    float raw;
+    float LPF;
+    float HPF;
+    uint8_t charged;
+    uint8_t attached;
+
+    uint32_t PG_pin;
+    GPIO_TypeDef * PG_port;
+} input_src_stat;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+extern uint8_t buzzer_mutex;
+extern uint64_t buzzer_pulse_stamp;
+extern uint64_t buzzer_period_stamp;
+extern input_src_stat *prime_VIN;
+extern input_src_stat VIN1;
+extern input_src_stat VIN2;
+extern input_src_stat VIN3;
+extern uint32_t ADC1_buf[6];
+extern uint8_t emergency_stat;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -83,6 +107,14 @@ void user_spin(void);
 #define S2_red_GPIO_Port GPIOA
 #define S1_red_Pin LL_GPIO_PIN_5
 #define S1_red_GPIO_Port GPIOC
+#define GPIO1_Pin LL_GPIO_PIN_0
+#define GPIO1_GPIO_Port GPIOB
+#define GPIO2_Pin LL_GPIO_PIN_1
+#define GPIO2_GPIO_Port GPIOB
+#define GPIO3_Pin LL_GPIO_PIN_2
+#define GPIO3_GPIO_Port GPIOB
+#define GPIO4_Pin LL_GPIO_PIN_10
+#define GPIO4_GPIO_Port GPIOB
 #define OE_CTL_Pin LL_GPIO_PIN_12
 #define OE_CTL_GPIO_Port GPIOB
 #define DEMUX_OE_Pin LL_GPIO_PIN_13
@@ -91,6 +123,14 @@ void user_spin(void);
 #define SW3_GPIO_Port GPIOB
 #define DEMUX_S0_CTL_Pin LL_GPIO_PIN_15
 #define DEMUX_S0_CTL_GPIO_Port GPIOB
+#define BEEPER_Pin LL_GPIO_PIN_6
+#define BEEPER_GPIO_Port GPIOC
+#define LED_R_Pin LL_GPIO_PIN_7
+#define LED_R_GPIO_Port GPIOC
+#define LED_G_Pin LL_GPIO_PIN_8
+#define LED_G_GPIO_Port GPIOC
+#define LED_B_Pin LL_GPIO_PIN_9
+#define LED_B_GPIO_Port GPIOC
 #define BUS_EN_Pin LL_GPIO_PIN_10
 #define BUS_EN_GPIO_Port GPIOA
 #define SUPP_2_PG_Pin LL_GPIO_PIN_11
