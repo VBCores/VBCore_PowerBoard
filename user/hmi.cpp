@@ -8,9 +8,6 @@ void setup_hmi() {
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-
-    start_led(HMI_LED::FIRST, {.r = 255, .g = 0, .b = 0}, 0, 0);
-    start_beeper(5, 5);
 }
 
 #define SEC 1000000.0f

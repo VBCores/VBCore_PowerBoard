@@ -1125,13 +1125,13 @@ void power_control(void)
         LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus     
         micros_delay(200000);
       }    
-      
+
       if( buzzer_mutex < ALARM )
       {
         buzzer_mutex = ALARM;
         buzzer_pulse_stamp = micros_64() + 1000000u;
         buzzer_period_stamp = micros_64() + 2000000u;
-      }    
+      }
     } 
   }
 }

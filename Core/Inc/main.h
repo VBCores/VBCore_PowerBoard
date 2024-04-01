@@ -46,9 +46,9 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 typedef enum {
-    USER,
-    WARNING,
-    ALARM
+    USER = 1,
+    WARNING = 2,
+    ALARM = 3
 } buzzer_mutex_priorities;
 
 typedef struct

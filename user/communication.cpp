@@ -87,7 +87,10 @@ static uint8_t CYPHAL_MODE = uavcan_node_Mode_1_0_INITIALIZATION;
 bool _is_cyphal_on = false;
 
 static std::shared_ptr<CyphalInterface> cyphal_interface;
-UtilityConfig utilities(micros_64, Error_Handler);
+void cyphal_error_handler() {
+    _is_cyphal_on = false;
+}
+UtilityConfig utilities(micros_64, cyphal_error_handler);
 
 ReservedObject<NodeInfoReader> node_info_reader;
 ReservedObject<BeeperServiceProvider> beeper_provider;
