@@ -45,14 +45,14 @@ public:
         }
 
         start_led(
-                (HMI_LED)led_msg.interface.value,
-                (RGB){
-                    .r=led_msg.r.value,
-                    .g=led_msg.g.value,
-                    .b=led_msg.b.value
-                },
-                beeps,
-                led_msg.frequency.hertz
+            (HMI_LED)led_msg.interface.value,
+            (RGB){
+                .r=led_msg.r.value,
+                .g=led_msg.g.value,
+                .b=led_msg.b.value
+            },
+            beeps,
+            led_msg.frequency.hertz
         );
 
         LEDServiceResponse::Type response = {};
@@ -64,9 +64,9 @@ public:
 class BeeperServiceProvider : public AbstractSubscription<BeeperServiceRequest> {
 public:
     BeeperServiceProvider(InterfacePtr interface): AbstractSubscription<BeeperServiceRequest>(
-            interface,
-            SRV_HMI_BEEPER_PORT,
-            CanardTransferKindRequest
+        interface,
+        SRV_HMI_BEEPER_PORT,
+        CanardTransferKindRequest
     ) {}
     void handler(const BeeperServiceRequest::Type& beeper_msg, CanardRxTransfer* transfer) override {
         int beeps = (int)ceil(beeper_msg.duration.second * beeper_msg.frequency.hertz / 2);
