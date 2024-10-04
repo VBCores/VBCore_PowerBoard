@@ -87,11 +87,11 @@ uint8_t prime = 0; // selected power source variable. RW
 const float uvlo_level = 18.0f; // battery discharged voltage level, Volts
 const float uvlo_hyst = 1.0f; // battery discharged hysteresis, Volts
 
-const float src_charged_level = 25.2f; // battery charged voltage level, Volts
+const float src_charged_level = 25.0f; // battery charged voltage level, Volts
 
 const float nom_chrg_curr = 15.0f;
 
-const uint32_t bus_start_timeout = 30000u; // timeout for bus output reaching PowerGood status, microseconds
+const uint32_t bus_start_timeout = 70000u; // timeout for bus output reaching PowerGood status, microseconds
 const uint8_t emergency_start_threshold = 3u; // number of attempts to start the bus before an emergency shutdown
 
 uint8_t default_prime = 0; // variable to store the prefered prime power source. 0 for input "2", 1 for "3"
@@ -369,20 +369,20 @@ static void MX_FDCAN1_Init(void)
 
   /* USER CODE END FDCAN1_Init 1 */
   hfdcan1.Instance = FDCAN1;
-  hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
+  hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV2;
   hfdcan1.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
   hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
   hfdcan1.Init.AutoRetransmission = ENABLE;
   hfdcan1.Init.TransmitPause = ENABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 4;
-  hfdcan1.Init.NominalSyncJumpWidth = 1;
-  hfdcan1.Init.NominalTimeSeg1 = 69;
-  hfdcan1.Init.NominalTimeSeg2 = 10;
-  hfdcan1.Init.DataPrescaler = 4;
-  hfdcan1.Init.DataSyncJumpWidth = 1;
-  hfdcan1.Init.DataTimeSeg1 = 6;
-  hfdcan1.Init.DataTimeSeg2 = 3;
+  hfdcan1.Init.NominalPrescaler = 1;
+  hfdcan1.Init.NominalSyncJumpWidth = 24;
+  hfdcan1.Init.NominalTimeSeg1 = 55;
+  hfdcan1.Init.NominalTimeSeg2 = 24;
+  hfdcan1.Init.DataPrescaler = 1;
+  hfdcan1.Init.DataSyncJumpWidth = 4;
+  hfdcan1.Init.DataTimeSeg1 = 5;
+  hfdcan1.Init.DataTimeSeg2 = 4;
   hfdcan1.Init.StdFiltersNbr = 0;
   hfdcan1.Init.ExtFiltersNbr = 3;
   hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
