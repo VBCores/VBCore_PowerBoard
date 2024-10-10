@@ -15,4 +15,4 @@ struct RGB {
 
 void start_led(HMI_LED target, RGB color, int beeps, float freq);
 void start_beeper(int beeps, float freq);
-void hmi_interrupt(uint64_t cur_micros);
+void hmi_handler(uint64_t cur_micros);

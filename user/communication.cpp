@@ -9,12 +9,14 @@
 #include <cyphal/node/registers_handler.hpp>
 #include <cyphal/node/node_info_handler.h>
 
+#include <uavcan/diagnostic/Record_1_1.h>
 #include <uavcan/node/Heartbeat_1_0.h>
 #include <types/voltbro/battery/state_1_0.h>
 #include <types/voltbro/battery/buttons_1_0.h>
 #include <types/voltbro/hmi/beeper_service_1_0.h>
 #include <types/voltbro/hmi/led_service_1_0.h>
 
+TYPE_ALIAS(DiagnosticRecord, uavcan_diagnostic_Record_1_1)
 TYPE_ALIAS(HBeat, uavcan_node_Heartbeat_1_0)
 TYPE_ALIAS(LEDServiceRequest, voltbro_hmi_led_service_Request_1_0)
 TYPE_ALIAS(LEDServiceResponse, voltbro_hmi_led_service_Response_1_0)
@@ -23,8 +25,8 @@ TYPE_ALIAS(BeeperServiceResponse, voltbro_hmi_beeper_service_Response_1_0)
 TYPE_ALIAS(PWRButtons, voltbro_battery_buttons_1_0)
 TYPE_ALIAS(BatteryState, voltbro_battery_state_1_0)
 
-static constexpr micros BATTERY_INTERVAL_MICROS = 200000u;
-static constexpr micros BUTTONS_INTERVAL_MICROS = 200000u;
+static constexpr micros BATTERY_INTERVAL_MICROS = 1000u;
+static constexpr micros BUTTONS_INTERVAL_MICROS = 1000u;
 static constexpr CanardPortID BATTERY_INFO_PORT = 7993;
 static constexpr CanardPortID BUTTONS_INFO_PORT = 8003;
 static constexpr CanardPortID SRV_HMI_LED_PORT = 172;
@@ -87,22 +89,43 @@ static uint8_t CYPHAL_MODE = uavcan_node_Mode_1_0_INITIALIZATION;
 bool _is_cyphal_on = false;
 
 static std::shared_ptr<CyphalInterface> cyphal_interface;
+
+// This program is a very specific case where we can delay in this handler
+// Because all work happens in interrupts and cyphal loop is the only busy loop
 void cyphal_error_handler() {
     _is_cyphal_on = false;
+    // Clear all queued messages
+    cyphal_interface->clear_queue();
+    // delay for half a second
+    HAL_Delay(500);
+
+    static CanardTransferID record_transfer_id = 0;
+    DiagnosticRecord::Type record;
+    record.severity.value = uavcan_diagnostic_Severity_1_0_ERROR;
+    sprintf(reinterpret_cast<char*>(record.text.elements), "cyphal_error_handler was called internally");
+    record.text.count = strlen((char*)record.text.elements);
+
+    cyphal_interface->send_msg<DiagnosticRecord>(
+        &record,
+        uavcan_diagnostic_Record_1_1_FIXED_PORT_ID_,
+        &record_transfer_id
+    );
+    _is_cyphal_on = true;
 }
 UtilityConfig utilities(micros_64, cyphal_error_handler);
 
 ReservedObject<NodeInfoReader> node_info_reader;
 ReservedObject<BeeperServiceProvider> beeper_provider;
 ReservedObject<LEDServiceProvider> led_provider;
+ReservedObject<RegistersHandler<0>> registers_handler;
 
-static uint32_t uptime = 0;
-void heartbeat() {
+void heartbeat(uint32_t uptime) {
     static CanardTransferID hbeat_transfer_id = 0;
     HBeat::Type heartbeat_msg = {
         .uptime = uptime,
         .health = {CYPHAL_HEALTH_STATUS},
-        .mode = {CYPHAL_MODE}
+        .mode = {CYPHAL_MODE},
+        .vendor_specific_status_code = static_cast<uint8_t>(std::clamp<size_t>(cyphal_interface->queue_size(), 0, UINT8_MAX))
     };
     cyphal_interface->send_msg<HBeat>(
         &heartbeat_msg,
@@ -129,6 +152,11 @@ void user_setup(void) {
         uavcan_node_Version_1_0{1, 0},
         0
     );
+    registers_handler.create(
+        std::array<RegisterDefinition, 0>{{
+        }},
+        cyphal_interface
+    );
     beeper_provider.create(cyphal_interface);
     led_provider.create(cyphal_interface);
 
@@ -146,6 +174,11 @@ void user_setup(void) {
         &hfdcan1,
         &sFilterConfig,
         node_info_reader->make_filter(NODE_ID)
+    ))
+    HAL_IMPORTANT(apply_filter(
+        &hfdcan1,
+        &sFilterConfig,
+        registers_handler->make_filter(NODE_ID)
     ))
     HAL_IMPORTANT(apply_filter(
         &hfdcan1,
@@ -208,7 +241,7 @@ void report_battery() {
     sprintf((char*)battery_msg.serial_number.value.elements, "%s", battery_serial_number.c_str());
     battery_msg.serial_number.value.count = battery_serial_number.length();
 
-    cyphal_interface->send_msg<BatteryState>(&battery_msg, BATTERY_INFO_PORT, &battery_transfer_id);
+    cyphal_interface->send_msg<BatteryState>(&battery_msg, BATTERY_INFO_PORT, &battery_transfer_id, MICROS_0_1S);
 }
 
 void report_buttons() {
@@ -218,18 +251,19 @@ void report_buttons() {
     buttons_msg.emergency_button.value = (emergency_stat != 0);
     buttons_msg.user_button.value = HAL_GPIO_ReadPin(GPIO4_GPIO_Port, GPIO4_Pin) != GPIO_PIN_SET;
 
-    cyphal_interface->send_msg<PWRButtons>(&buttons_msg, BUTTONS_INFO_PORT, &buttons_transfer_id);
+    cyphal_interface->send_msg<PWRButtons>(&buttons_msg, BUTTONS_INFO_PORT, &buttons_transfer_id, MICROS_0_1S);
 }
 
 static micros battery_report_time = 0;
 static micros buttons_report_time = 0;
 static micros heartbeat_time = 0;
-void reporting_loop(micros cur_micros) {
+void comms_handler(micros cur_micros) {
     if (!_is_cyphal_on) return;
 
+    static uint32_t uptime = 0;
     EACH_N_MICROS(cur_micros, heartbeat_time, 1000000, {
         uptime++;
-        heartbeat();
+        heartbeat(uptime);
     })
     EACH_N_MICROS(cur_micros, buttons_report_time, BUTTONS_INTERVAL_MICROS, {
         report_buttons();
@@ -237,12 +271,12 @@ void reporting_loop(micros cur_micros) {
     EACH_N_MICROS(cur_micros, battery_report_time, BATTERY_INTERVAL_MICROS, {
         report_battery();
     })
+
+    cyphal_interface->loop();
 }
 
 void user_spin(void) {
     micros current_micros = micros_64();
-    reporting_loop(current_micros);
-    hmi_interrupt(current_micros);
-    cyphal_interface->loop();
+    comms_handler(current_micros);
+    hmi_handler(current_micros);
 }
-

@@ -196,7 +196,7 @@ void handle_led_beep(uint64_t cur_micros, BlinkParams* led_params) {
     }
 }
 
-void hmi_interrupt(uint64_t cur_micros) {
+void hmi_handler(uint64_t cur_micros) {
     handle_led_beep(cur_micros, &led_1_params);
     handle_led_beep(cur_micros, &led_2_params);
 

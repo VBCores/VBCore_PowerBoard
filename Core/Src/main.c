@@ -384,7 +384,7 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.DataTimeSeg1 = 5;
   hfdcan1.Init.DataTimeSeg2 = 4;
   hfdcan1.Init.StdFiltersNbr = 0;
-  hfdcan1.Init.ExtFiltersNbr = 3;
+  hfdcan1.Init.ExtFiltersNbr = 4;
   hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
   {
@@ -1236,10 +1236,10 @@ void UART2_printf( const char * format, ... )
   char buffer[256] = {0};
   va_list args;
   va_start (args, format);
-  int len = vsprintf (buffer,format, args);
+  int len = vsprintf (buffer, format, args);
   va_end (args);
   
-  HAL_UART_Transmit(&huart2, (const uint8_t*)buffer, len, 100);
+  //HAL_UART_Transmit(&huart2, (const uint8_t*)buffer, len, 100);
 }
 
 // this function runs once
