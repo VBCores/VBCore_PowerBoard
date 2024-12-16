@@ -69,6 +69,8 @@ typedef struct
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -81,6 +83,7 @@ void user_setup(void);
 void user_spin(void);
 
 USR_IO_State user_read_io(void);
+void user_write_io(uint8_t usr_io, uint8_t value);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
