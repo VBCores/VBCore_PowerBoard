@@ -46,16 +46,15 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+/**
+  * @brief  State of user IOs.
+  * @note   "1" = floating
+  *         "0" = connected to ground
+  * @note   call user_read_io() to get current state 
+  */
 typedef struct
 {
-  uint8_t IO1;
-  uint8_t IO2;
-  uint8_t IO3;
-  uint8_t IO4;
-  uint8_t IO5;
-  uint8_t IO6;
-  uint8_t IO7;
-  uint8_t IO8;
+  uint8_t state[8];
 } USR_IO_State;
 /* USER CODE END ET */
 
@@ -82,8 +81,19 @@ void UART2_printf( const char * format, ... );
 void user_setup(void);
 void user_spin(void);
 
+/**
+  * @brief  Read state of user IOs all at once via the SPI in blocking mode
+  * @retval current state of user IOs
+  */
 USR_IO_State user_read_io(void);
-void user_write_io(uint8_t usr_io, uint8_t value);
+
+/**
+  * @brief  Set PWM duty-cycle for selested user IO
+  * @param  usr_io Desired channel number
+  * @param  value Desired PWM value. Values range is [0:255}
+  * @retval Error code. "0" if succeeded
+  */
+uint8_t user_write_io(uint8_t usr_io, uint8_t value);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

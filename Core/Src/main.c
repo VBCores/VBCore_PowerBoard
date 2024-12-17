@@ -1479,13 +1479,13 @@ USR_IO_State user_read_io(void)
   
   for( uint8_t i = 0; i < 8; i++ )
   {
-    *((uint8_t *)&ret + i) = (SPI_RX & ( 1 << i )) >> i;
+    ret.state[i] = (SPI_RX & ( 1 << i )) >> i;
   }
   
   return ret;
 }
 
-void user_write_io(uint8_t usr_io, uint8_t value)
+uint8_t user_write_io(uint8_t usr_io, uint8_t value)
 {
   uint32_t channel = 0;
   if( usr_io < 4 )
@@ -1502,16 +1502,20 @@ void user_write_io(uint8_t usr_io, uint8_t value)
     }
 
     __HAL_TIM_SET_COMPARE(&htim3, channel, value);
+    
+    return 0;
   }
   else if( usr_io >= 4 && usr_io < 8 )
   {
     channel = ( usr_io - 4 )*4;
     
     __HAL_TIM_SET_COMPARE(&htim8, channel, value);
+    
+    return 0;
   }
   else
   {
-    Error_Handler();
+    return 1;
   }
 }
 /* USER CODE END 4 */
