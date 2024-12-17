@@ -977,9 +977,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static inline float adc_voltage(uint8_t channel)
+{
+  return 3.3f*(float)ADC1_buf[channel] / ( 4096.0f );
+}
+
 float get_actual_current(void)
 {
-  float ACS_output_v = ( (float)ADC1_buf[1] * 3.3f / 4096.0f ) - 1.65f;
+  float ACS_output_v = adc_voltage(1) - 1.65f;
   
   #ifdef curr_sns_inver
   ACS_output_v *= -1.0f;
@@ -1069,7 +1074,7 @@ void power_control(void)
   // Check buttons and select prime
   check_buttons();
   
-  if( ADC1_buf[2] > 100 && LL_GPIO_IsInputPinSet( DEMUX_OE_GPIO_Port, DEMUX_OE_Pin ) )
+  if( 16.0f*adc_voltage(2) > 2.0f && LL_GPIO_IsInputPinSet( DEMUX_OE_GPIO_Port, DEMUX_OE_Pin ) )
   {
     VIN1.attached = 1;
     
@@ -1384,19 +1389,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if( htim->Instance == TIM6 )
   {
-    VIN1.raw = 16.0f*3.3f*(float)ADC1_buf[2] / ( 4096.0f );
+    VIN1.raw = 16.0f*adc_voltage(2);
     VIN1.LPF = VIN1.LPF - (0.005f * (VIN1.LPF - VIN1.raw));
     VIN1.HPF = VIN1.raw - VIN1.LPF;
     
-    VIN2.raw = 16.0f*3.3f*(float)ADC1_buf[3] / ( 4096.0f );
+    VIN2.raw = 16.0f*adc_voltage(3);
     VIN2.LPF = VIN2.LPF - (0.005f * (VIN2.LPF - VIN2.raw));
     VIN2.HPF = VIN2.raw - VIN2.LPF;
     
-    VIN3.raw = 16.0f*3.3f*(float)ADC1_buf[4] / ( 4096.0f );
+    VIN3.raw = 16.0f*adc_voltage(4);
     VIN3.LPF = VIN3.LPF - (0.005f * (VIN3.LPF - VIN3.raw));
     VIN3.HPF = VIN3.raw - VIN3.LPF;    
     
-    CHRG.raw = 16.0f*3.3f*(float)ADC1_buf[0] / ( 4096.0f );
+    CHRG.raw = 16.0f*adc_voltage(0);
     CHRG.LPF = CHRG.LPF - (0.005f * (CHRG.LPF - CHRG.raw));
     CHRG.HPF = CHRG.raw - CHRG.LPF;    
     
