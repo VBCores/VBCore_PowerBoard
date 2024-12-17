@@ -1069,6 +1069,63 @@ void power_control(void)
   // Check buttons and select prime
   check_buttons();
   
+  if( ADC1_buf[2] > 100 && LL_GPIO_IsInputPinSet( DEMUX_OE_GPIO_Port, DEMUX_OE_Pin ) )
+  {
+    VIN1.attached = 1;
+    
+    // the batteries are disconnected automatically, but control signal needs to be disabled for 
+    // the other software parts to work
+    LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin);
+    
+    uint64_t timestamp = 0;
+    
+    if( bus_enable )
+    {
+      if( !LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin) )
+      {
+        LL_GPIO_SetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // enable power bus
+        micros_delay(2);
+      }
+      
+      if( !LL_GPIO_IsInputPinSet( BUS_EN_GPIO_Port, BUS_EN_Pin) && LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin) )
+      {
+        emergency_stat = 1;
+        LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
+      }
+      else
+      {
+        emergency_stat = 0;
+        
+        timestamp = micros();
+        while( LL_GPIO_IsInputPinSet( BUS_PG_GPIO_Port, BUS_PG_Pin) ) // wait until PG pin goes low ( PG = OK )
+        {
+          if( micros() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
+          {
+            LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
+            LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
+            
+            micros_delay( 1000000 ); // wait for 1s before trying to enable bus again to prevent MOSFET damage
+            
+            start_fail_cnt++;
+            
+            return ;
+          }
+        }
+      }   
+    }
+    else
+    {
+      LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
+      return ;
+    }
+    
+    return ;
+  }
+  else
+  {
+    VIN1.attached = 0;
+  }
+  
 #ifdef auto_prime_selection
   if( VIN2.charged && VIN3.charged )
   {
@@ -1275,13 +1332,17 @@ void power_control(void)
 
 void indication(void)
 {
-  if( prime_VIN->LPF < uvlo_level + uvlo_hyst )
+  // warning is needed on battery power only
+  if( !VIN1.attached )
   {
-    if( buzzer_mutex < WARNING )
+    if( prime_VIN->LPF < uvlo_level + uvlo_hyst )
     {
-      buzzer_mutex = WARNING;
-      buzzer_pulse_stamp = micros() + 300000u;
-      buzzer_period_stamp = micros() + 1800000u;
+      if( buzzer_mutex < WARNING )
+      {
+        buzzer_mutex = WARNING;
+        buzzer_pulse_stamp = micros() + 300000u;
+        buzzer_period_stamp = micros() + 1800000u;
+      }
     }
   }
   
@@ -1301,6 +1362,11 @@ void indication(void)
     }
   }
 
+  if( VIN1.attached ) { LL_GPIO_SetOutputPin(S1_red_GPIO_Port, S1_red_Pin);
+                        LL_GPIO_SetOutputPin(S1_grn_GPIO_Port, S1_grn_Pin);   }
+  else                { LL_GPIO_ResetOutputPin(S1_red_GPIO_Port, S1_red_Pin);
+                        LL_GPIO_ResetOutputPin(S1_grn_GPIO_Port, S1_grn_Pin); }
+  
   if( VIN2.attached ) { LL_GPIO_SetOutputPin(S2_red_GPIO_Port, S2_red_Pin);   }
   else                { LL_GPIO_ResetOutputPin(S2_red_GPIO_Port, S2_red_Pin); }
   
@@ -1318,6 +1384,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if( htim->Instance == TIM6 )
   {
+    VIN1.raw = 16.0f*3.3f*(float)ADC1_buf[2] / ( 4096.0f );
+    VIN1.LPF = VIN1.LPF - (0.005f * (VIN1.LPF - VIN1.raw));
+    VIN1.HPF = VIN1.raw - VIN1.LPF;
+    
     VIN2.raw = 16.0f*3.3f*(float)ADC1_buf[3] / ( 4096.0f );
     VIN2.LPF = VIN2.LPF - (0.005f * (VIN2.LPF - VIN2.raw));
     VIN2.HPF = VIN2.raw - VIN2.LPF;
