@@ -97,6 +97,17 @@ static void MX_IWDG_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// this function runs once
+__weak void user_setup(void)
+{
+  
+}
+
+// this function runs in an infinite loop
+__weak void user_spin(void)
+{
+  
+}
 /* USER CODE END 0 */
 
 /**
@@ -948,58 +959,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if( htim->Instance == TIM7 )
-  {
-    TIM7_ITs++;
-  }
-}
-
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize s=none
-uint64_t micros()
-#elif defined ( __GNUC__ ) /*!< GNU Compiler */
-uint64_t __attribute__((optimize("O0"))) micros()
-#endif
-{ 
-  return (uint64_t)(__HAL_TIM_GET_COUNTER(&htim7) + 50000u * TIM7_ITs);
-}
-
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize s=none
-void micros_delay( uint64_t delay )
-#elif defined ( __GNUC__ ) /*!< GNU Compiler */
-void __attribute__((optimize("O0"))) micros_delay( uint64_t delay )
-#endif
-{
-  uint64_t timestamp = micros();
-  while( micros() < timestamp + delay );
-}
-
-void UART2_printf( const char * format, ... )
-{
-  char buffer[256] = {0};
-  va_list args;
-  va_start (args, format);
-  int len = vsprintf (buffer,format, args);
-  va_end (args);
-  
-  HAL_UART_Transmit(&huart2, (const uint8_t*)buffer, len, 100);
-}
-
-// this function runs once
-__weak void user_setup(void)
-{
-  
-}
-
-// this function runs in an infinite loop
-__weak void user_spin(void)
-{
-  
-}
-
 USR_IO_State user_read_io(void)
 {
   USR_IO_State ret = {0};
@@ -1051,6 +1010,46 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value)
   {
     return 1;
   }
+}
+
+void UART2_printf( const char * format, ... )
+{
+  char buffer[256] = {0};
+  va_list args;
+  va_start (args, format);
+  int len = vsprintf (buffer,format, args);
+  va_end (args);
+  
+  HAL_UART_Transmit(&huart2, (const uint8_t*)buffer, len, 100);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if( htim->Instance == TIM7 )
+  {
+    TIM7_ITs++;
+  }
+}
+
+#if defined ( __ICCARM__ ) /*!< IAR Compiler */
+#pragma optimize s=none
+uint64_t micros()
+#elif defined ( __GNUC__ ) /*!< GNU Compiler */
+uint64_t __attribute__((optimize("O0"))) micros()
+#endif
+{ 
+  return (uint64_t)(__HAL_TIM_GET_COUNTER(&htim7) + 50000u * TIM7_ITs);
+}
+
+#if defined ( __ICCARM__ ) /*!< IAR Compiler */
+#pragma optimize s=none
+void micros_delay( uint64_t delay )
+#elif defined ( __GNUC__ ) /*!< GNU Compiler */
+void __attribute__((optimize("O0"))) micros_delay( uint64_t delay )
+#endif
+{
+  uint64_t timestamp = micros();
+  while( micros() < timestamp + delay );
 }
 /* USER CODE END 4 */
 
