@@ -145,7 +145,7 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value);
 #define S2_grn_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-//#define auto_prime_selection
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

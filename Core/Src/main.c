@@ -63,7 +63,6 @@ uint64_t TIM7_ITs = 0; // counter of microseconds timesource ITs
 
 /********** User accessible variables **********/
 uint8_t prime = 0; // selected power source variable. RW
-uint8_t default_prime = 0; // variable to store the prefered prime power source. 0 for input "2", 1 for "3"
 
 uint8_t pc_enable = 1; // PC power bus control. RW
 uint8_t bus_enable = 1; // main power bus control. RW

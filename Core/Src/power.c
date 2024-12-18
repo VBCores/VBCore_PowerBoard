@@ -18,7 +18,6 @@ const float nom_chrg_curr = nominal_charge_current;
 
 // user accessible power control parameters
 extern uint8_t prime;
-extern uint8_t default_prime;
 extern uint8_t pc_enable;
 extern uint8_t bus_enable;
 
@@ -243,7 +242,7 @@ void power_control(void)
     VIN1.attached = 0;
   }
   
-#ifdef auto_prime_selection
+#ifdef default_prime
   if( VIN2.charged && VIN3.charged )
   {
     prime = default_prime;
