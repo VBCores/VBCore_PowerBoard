@@ -56,6 +56,18 @@ typedef struct
 {
   uint8_t state[8];
 } USR_IO_State;
+
+typedef struct 
+{
+  float raw;
+  float LPF;
+  float HPF;
+  uint8_t charged;
+  uint8_t attached;
+  
+  uint32_t PG_pin;
+  GPIO_TypeDef * PG_port;
+} input_src_stat;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -133,7 +145,7 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value);
 #define S2_grn_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+//#define auto_prime_selection
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
