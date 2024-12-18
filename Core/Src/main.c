@@ -62,12 +62,6 @@ UART_HandleTypeDef huart2;
 uint64_t TIM7_ITs = 0; // counter of microseconds timesource ITs
 
 /********** User accessible variables **********/
-const float uvlo_level = 18.0f; // battery discharged voltage level, Volts
-const float uvlo_hyst = 1.0f; // battery discharged hysteresis, Volts
-
-const float src_charged_level = 25.2f; // battery charged voltage level, Volts
-const float nom_chrg_curr = 15.0f;
-
 uint8_t prime = 0; // selected power source variable. RW
 uint8_t default_prime = 0; // variable to store the prefered prime power source. 0 for input "2", 1 for "3"
 

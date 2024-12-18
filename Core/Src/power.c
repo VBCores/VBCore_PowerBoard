@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include "main.h"
 #include "power.h"
+#include "battery_config.h"
 
 //#define curr_sns_inver
 
@@ -10,10 +11,10 @@ const uint32_t bus_start_timeout = 30000u; // timeout for bus output reaching Po
 const uint8_t emergency_start_threshold = 3u; // number of attempts to start the bus before an emergency shutdown
 
 // user defined power source parameters
-extern const float uvlo_level;
-extern const float uvlo_hyst;
-extern const float src_charged_level;
-extern const float nom_chrg_curr;
+const float uvlo_level = undervoltage_lockout_voltage; // battery discharged voltage level, Volts
+const float uvlo_hyst = undervoltage_lockout_hysteresis; // battery discharged hysteresis, Volts
+const float src_charged_level = charged_battery_voltage; // battery charged voltage level, Volts
+const float nom_chrg_curr = nominal_charge_current;
 
 // user accessible power control parameters
 extern uint8_t prime;
