@@ -1156,6 +1156,9 @@
         <name>$PROJ_DIR$\..\Drivers\STM32G4xx_HAL_Driver\Src\stm32g4xx_ll_pwr.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_iwdg.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_spi.c</name>
       </file>
       <file>

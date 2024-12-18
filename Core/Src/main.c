@@ -72,6 +72,8 @@ typedef struct
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+IWDG_HandleTypeDef hiwdg;
+
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
@@ -135,13 +137,22 @@ static void MX_SPI2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM15_Init(void);
+static void MX_IWDG_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+#pragma optimize s=none
+void __micros_delay( uint64_t delay )
+{
+  uint64_t timestamp = micros();
+  while( micros() < timestamp + delay )
+  {
+    HAL_IWDG_Refresh(&hiwdg);
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -183,11 +194,12 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM8_Init();
   MX_TIM15_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-  HAL_Delay(300); // prevents MOSFETs torture if board is forced to restart frequently
-  
   HAL_TIM_Base_Start_IT(&htim7); // enable microseconds timesource
   
+  __micros_delay(300000); // prevents MOSFETs torture if board is forced to restart frequently
+
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED); // apply factory ADC calibration settings
   HAL_ADC_Start_DMA(&hadc1, ADC1_buf, ADC_buf_size); // enable ADC and bind DMA to the output buffer
   
@@ -195,10 +207,9 @@ int main(void)
   
   //LL_GPIO_SetOutputPin(PC_CTL_GPIO_Port, PC_CTL_Pin); // enable PC bus    
   
-  HAL_Delay(100);
+  __micros_delay(100000);
   HAL_TIM_Base_Start_IT(&htim16); // processes power control logic in TIM16 interrupt
-  HAL_Delay(10);
-  
+
   UART2_printf( "UVLO=%4.1f HYST=%4.1f FULL_CHRG=%4.1f CHRG_CURR=%4.1f\r\n", uvlo_level, uvlo_hyst, src_charged_level, nom_chrg_curr);
   
   // enable user IO periphery
@@ -245,8 +256,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
@@ -375,6 +387,35 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
+  hiwdg.Init.Window = 4095;
+  hiwdg.Init.Reload = 55;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
 
 }
 
@@ -998,7 +1039,7 @@ uint8_t check_battery_input( input_src_stat * VIN )
 {
   if( VIN->HPF < -5.0f )
   {
-    micros_delay( 1000 );
+    __micros_delay( 1000 );
     
     if( get_actual_current() < 0.4f ) // exclude transients. the source is disconnected only if current ~0A
     {
@@ -1089,7 +1130,7 @@ void power_control(void)
       if( !LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin) )
       {
         LL_GPIO_SetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // enable power bus
-        micros_delay(2);
+        __micros_delay(2);
       }
       
       if( !LL_GPIO_IsInputPinSet( BUS_EN_GPIO_Port, BUS_EN_Pin) && LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin) )
@@ -1109,12 +1150,14 @@ void power_control(void)
             LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
             LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
             
-            micros_delay( 1000000 ); // wait for 1s before trying to enable bus again to prevent MOSFET damage
+            __micros_delay( 1000000 ); // wait for 1s before trying to enable bus again to prevent MOSFET damage
             
             start_fail_cnt++;
             
             return ;
           }
+          
+          HAL_IWDG_Refresh(&hiwdg);
         }
       }   
     }
@@ -1147,7 +1190,7 @@ void power_control(void)
     {
       LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // disable input channels
       
-      micros_delay( 50000 );
+      __micros_delay( 50000 );
 
       if( ( VIN2.raw > 10.0f ) && ( VIN2.raw < src_charged_level ) )
       {
@@ -1156,7 +1199,7 @@ void power_control(void)
         LL_GPIO_SetOutputPin(DEMUX_S0_CTL_GPIO_Port, DEMUX_S0_CTL_Pin);
         LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
         
-        micros_delay( 50000 );
+        __micros_delay( 50000 );
       }
       else if( ( VIN3.raw > 10.0f ) && ( VIN3.raw < src_charged_level ) )
       {
@@ -1165,7 +1208,7 @@ void power_control(void)
         LL_GPIO_ResetOutputPin(DEMUX_S0_CTL_GPIO_Port, DEMUX_S0_CTL_Pin);
         LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
 
-        micros_delay( 50000 );
+        __micros_delay( 50000 );
       }
       else
       {
@@ -1258,12 +1301,14 @@ void power_control(void)
             LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
             LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
             
-            micros_delay( 1000000 ); // wait for 1s before trying to enable bus again to prevent MOSFET damage
+            __micros_delay( 1000000 ); // wait for 1s before trying to enable bus again to prevent MOSFET damage
             
             start_fail_cnt++;
 
             return ;
           }
+          
+          HAL_IWDG_Refresh(&hiwdg);
         }
       }
       else
@@ -1278,7 +1323,7 @@ void power_control(void)
         if( !LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin) )
         {
           LL_GPIO_SetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // enable power bus
-          micros_delay(2);
+          __micros_delay(2);
         }
         
         if( !LL_GPIO_IsInputPinSet( BUS_EN_GPIO_Port, BUS_EN_Pin) && LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin) )
@@ -1298,12 +1343,14 @@ void power_control(void)
               LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
               LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
               
-              micros_delay( 1000000 ); // wait for 1s before trying to enable bus again to prevent MOSFET damage
+              __micros_delay( 1000000 ); // wait for 1s before trying to enable bus again to prevent MOSFET damage
               
               start_fail_cnt++;
               
               return ;
             }
+            
+            HAL_IWDG_Refresh(&hiwdg);
           }
         }   
       }
@@ -1322,7 +1369,7 @@ void power_control(void)
       if( LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin) )
       {
         LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus     
-        micros_delay(200000);
+        __micros_delay(200000);
       }    
       
       if( buzzer_mutex < ALARM )
@@ -1419,6 +1466,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     bus_stat = LL_GPIO_IsOutputPinSet(BUS_CTL_GPIO_Port, BUS_CTL_Pin);
     
     indication();
+    
+    HAL_IWDG_Refresh(&hiwdg);
   }
 }
 
