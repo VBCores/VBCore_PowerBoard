@@ -986,12 +986,16 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value)
     switch( usr_io ){
     case 0:
       channel = 0x0C;
+      break;
     case 1:
       channel = 0x08;
+      break;
     case 2:
       channel = 0x04;
+      break;
     case 3:
       channel = 0x00;
+      break;
     }
 
     __HAL_TIM_SET_COMPARE(&htim3, channel, value);
