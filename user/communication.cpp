@@ -25,8 +25,8 @@ TYPE_ALIAS(BeeperServiceResponse, voltbro_hmi_beeper_service_Response_1_0)
 TYPE_ALIAS(PWRButtons, voltbro_battery_buttons_1_0)
 TYPE_ALIAS(BatteryState, voltbro_battery_state_1_0)
 
-static constexpr micros BATTERY_INTERVAL_MICROS = 1000u;
-static constexpr micros BUTTONS_INTERVAL_MICROS = 1000u;
+static constexpr micros BATTERY_INTERVAL_MICROS = 50000u;
+static constexpr micros BUTTONS_INTERVAL_MICROS = 50000u;
 static constexpr CanardPortID BATTERY_INFO_PORT = 7993;
 static constexpr CanardPortID BUTTONS_INFO_PORT = 8003;
 static constexpr CanardPortID SRV_HMI_LED_PORT = 172;
