@@ -249,7 +249,7 @@ void report_buttons() {
     static CanardTransferID buttons_transfer_id = 0;
 
     buttons_msg.emergency_button.value = (emergency_stat != 0);
-    buttons_msg.user_button.value = HAL_GPIO_ReadPin(GPIO4_GPIO_Port, GPIO4_Pin) != GPIO_PIN_SET;
+    //buttons_msg.user_button.value = HAL_GPIO_ReadPin(GPIO4_GPIO_Port, GPIO4_Pin) != GPIO_PIN_SET;
 
     cyphal_interface->send_msg<PWRButtons>(&buttons_msg, BUTTONS_INFO_PORT, &buttons_transfer_id, MICROS_0_1S);
 }

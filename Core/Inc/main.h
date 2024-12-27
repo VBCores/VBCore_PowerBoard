@@ -68,6 +68,13 @@ typedef struct
   uint32_t PG_pin;
   GPIO_TypeDef * PG_port;
 } input_src_stat;
+
+typedef enum {
+    USER,
+    WARNING,
+    ALARM
+} buzzer_mutex_priorities ;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -86,7 +93,23 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-uint64_t micros(void);
+#define ADC_buf_size 5
+extern uint32_t ADC1_buf[ADC_buf_size];
+
+extern input_src_stat *prime_VIN;
+extern input_src_stat VIN1;
+extern input_src_stat VIN2;
+extern input_src_stat VIN3;
+
+extern uint8_t pc_stat; // PC power bus status. RO
+extern uint8_t bus_stat; // main power bus status. RO
+extern uint8_t emergency_stat;
+
+extern uint8_t buzzer_mutex;
+extern uint64_t buzzer_pulse_stamp;
+extern uint64_t buzzer_period_stamp;
+
+uint64_t micros_64(void);
 void micros_delay( uint64_t delay );
 void UART2_printf( const char * format, ... );
 

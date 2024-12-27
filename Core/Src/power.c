@@ -39,8 +39,6 @@ extern TIM_HandleTypeDef htim16;
 
 extern IWDG_HandleTypeDef hiwdg;
 
-// ADC related stuff
-#define ADC_buf_size 5
 uint32_t ADC1_buf[ADC_buf_size] = {0};
 
 // private(?) variables
@@ -62,8 +60,8 @@ static void __micros_delay( uint64_t delay )
 static void __attribute__((optimize("O0"))) __micros_delay( uint64_t delay )
 #endif
 {
-  uint64_t timestamp = micros();
-  while( micros() < timestamp + delay )
+  uint64_t timestamp = micros_64();
+  while( micros_64() < timestamp + delay )
   {
     HAL_IWDG_Refresh(&hiwdg);
   }
@@ -159,10 +157,6 @@ static void check_buttons(void)
   }  
 }
 
-extern uint8_t buzzer_mutex;
-extern uint64_t buzzer_pulse_stamp;
-extern uint64_t buzzer_period_stamp;
-
 void power_control(void)
 {
   static uint8_t start_fail_cnt = 0; // counter of failed start-up sequences
@@ -210,10 +204,10 @@ void power_control(void)
       {
         emergency_stat = 0;
         
-        timestamp = micros();
+        timestamp = micros_64();
         while( LL_GPIO_IsInputPinSet( BUS_PG_GPIO_Port, BUS_PG_Pin) ) // wait until PG pin goes low ( PG = OK )
         {
-          if( micros() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
+          if( micros_64() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
           {
             LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
             LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -361,10 +355,10 @@ void power_control(void)
         
         LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
         
-        timestamp = micros();
+        timestamp = micros_64();
         while( LL_GPIO_IsInputPinSet( prime_VIN->PG_port, prime_VIN->PG_pin) ) // wait until PG pin goes low ( PG = OK )
         {
-          if( micros() > timestamp + 10000 ) // the bus didnt reach PG status in 10 ms = abort operation
+          if( micros_64() > timestamp + 10000 ) // the bus didnt reach PG status in 10 ms = abort operation
           {
             LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
             LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -403,10 +397,10 @@ void power_control(void)
         {
           emergency_stat = 0;
           
-          timestamp = micros();
+          timestamp = micros_64();
           while( LL_GPIO_IsInputPinSet( BUS_PG_GPIO_Port, BUS_PG_Pin) ) // wait until PG pin goes low ( PG = OK )
           {
-            if( micros() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
+            if( micros_64() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
             {
               LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
               LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -443,8 +437,8 @@ void power_control(void)
       if( buzzer_mutex < ALARM )
       {
         buzzer_mutex = ALARM;
-        buzzer_pulse_stamp = micros() + 1000000u;
-        buzzer_period_stamp = micros() + 2000000u;
+        buzzer_pulse_stamp = micros_64() + 1000000u;
+        buzzer_period_stamp = micros_64() + 2000000u;
       }    
     } 
   }
@@ -460,19 +454,19 @@ static void indication(void)
       if( buzzer_mutex < WARNING )
       {
         buzzer_mutex = WARNING;
-        buzzer_pulse_stamp = micros() + 300000u;
-        buzzer_period_stamp = micros() + 1800000u;
+        buzzer_pulse_stamp = micros_64() + 300000u;
+        buzzer_period_stamp = micros_64() + 1800000u;
       }
     }
   }
   
   if( buzzer_mutex )
   {
-    if( micros() < buzzer_pulse_stamp )
+    if( micros_64() < buzzer_pulse_stamp )
     {
       HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_2);
     }
-    else if( micros() < buzzer_period_stamp )
+    else if( micros_64() < buzzer_period_stamp )
     {
       HAL_TIM_PWM_Stop(&htim15, TIM_CHANNEL_2);
     }
