@@ -102,10 +102,10 @@ void reset_led(HMI_LED target) {
 }
 
 void select_led_with_params(
-        HMI_LED target,
-        size_t* channels_count,
-        uint32_t** led_channels,
-        BlinkParams** params
+    HMI_LED target,
+    size_t* channels_count,
+    uint32_t** led_channels,
+    BlinkParams** params
 ) {
     select_led(target, channels_count, led_channels);
     switch (target) {

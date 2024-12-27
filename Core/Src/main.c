@@ -91,8 +91,8 @@ static void MX_SPI2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM15_Init(void);
-static void MX_IWDG_Init(void);
 static void MX_FDCAN1_Init(void);
+static void MX_IWDG_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -152,8 +152,8 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM8_Init();
   MX_TIM15_Init();
-  MX_IWDG_Init();
   MX_FDCAN1_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim7); // enable microseconds timesource. DO NOT MODIFY!
   power_setup(); // configuration of power sources control. DO NOT MODIFY!
