@@ -45,17 +45,13 @@ public:
         if (led_msg.duration.second > 0.01) {
             beeps = (int)ceil(led_msg.duration.second * led_msg.frequency.hertz / 2);
         }
+        // TODO: flashing
 
-        start_led(
-            (HMI_LED)led_msg.interface.value,
-            (RGB){
-                .r=led_msg.r.value,
-                .g=led_msg.g.value,
-                .b=led_msg.b.value
-            },
-            beeps,
-            led_msg.frequency.hertz
-        );
+        const HMI_LED led_id = (HMI_LED)led_msg.interface.value;
+        uint8_t offset = led_id == HMI_LED::FIRST ? 0 : 4;
+        user_write_io(offset, led_msg.r.value);
+        user_write_io(offset + 1, led_msg.g.value);
+        user_write_io(offset + 2, led_msg.b.value);
 
         LEDServiceResponse::Type response = {};
         response.accepted.value = 1;
@@ -136,8 +132,6 @@ void heartbeat(uint32_t uptime) {
 }
 
 void user_setup(void) {
-    setup_hmi();
-
     cyphal_interface = std::shared_ptr<CyphalInterface>(CyphalInterface::create_heap<G4CAN, O1Allocator>(
         NODE_ID,
         &hfdcan1,
@@ -248,8 +242,9 @@ void report_buttons() {
     PWRButtons::Type buttons_msg = {};
     static CanardTransferID buttons_transfer_id = 0;
 
+    const USR_IO_State io_state = user_read_io();
     buttons_msg.emergency_button.value = (emergency_stat != 0);
-    //buttons_msg.user_button.value = HAL_GPIO_ReadPin(GPIO4_GPIO_Port, GPIO4_Pin) != GPIO_PIN_SET;
+    buttons_msg.user_button.value = io_state.state[4];
 
     cyphal_interface->send_msg<PWRButtons>(&buttons_msg, BUTTONS_INFO_PORT, &buttons_transfer_id, MICROS_0_1S);
 }

@@ -1,7 +1,5 @@
 #include <cstdint>
 
-void setup_hmi();
-
 enum class HMI_LED{
     FIRST,
     SECOND

@@ -3,12 +3,7 @@
 #include "main.h"
 
 extern TIM_HandleTypeDef htim3;
-
-void setup_hmi() {
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-}
+extern TIM_HandleTypeDef htim15;
 
 #define SEC 1000000.0f
 
@@ -27,7 +22,7 @@ void set_beeper_params(uint64_t cur_micros) {
 }
 
 void start_beeper(int beeps, float freq) {
-    if (buzzer_mutex > USER) {
+    if (buzzer_mutex > 0) {
         return;
     }
     uint64_t cur_micros = micros_64();
@@ -39,7 +34,7 @@ void start_beeper(int beeps, float freq) {
     pulse_incr = period_incr / 2;
 
     set_beeper_params(cur_micros);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_2);
 }
 
 void stop_beeper() {
@@ -49,7 +44,7 @@ void stop_beeper() {
     buzzer_mutex = 0;
     buzzer_pulse_stamp = 0;
     buzzer_period_stamp = 0;
-    HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Stop(&htim15, TIM_CHANNEL_2);
 }
 
 struct BlinkParams{
@@ -197,8 +192,8 @@ void handle_led_beep(uint64_t cur_micros, BlinkParams* led_params) {
 }
 
 void hmi_handler(uint64_t cur_micros) {
-    handle_led_beep(cur_micros, &led_1_params);
-    handle_led_beep(cur_micros, &led_2_params);
+    //handle_led_beep(cur_micros, &led_1_params);
+    //handle_led_beep(cur_micros, &led_2_params);
 
     if (beeper_cutoff_micros > 0) {
         if (cur_micros >= beeper_cutoff_micros) {

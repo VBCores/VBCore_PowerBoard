@@ -70,9 +70,9 @@ typedef struct
 } input_src_stat;
 
 typedef enum {
-    USER,
-    WARNING,
-    ALARM
+    USER = 1,
+    WARNING = 2,
+    ALARM = 3
 } buzzer_mutex_priorities ;
 
 /* USER CODE END ET */
