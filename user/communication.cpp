@@ -132,6 +132,10 @@ void heartbeat(uint32_t uptime) {
 }
 
 void user_setup(void) {
+    user_write_io(0, 255);
+    user_write_io(1, 255);
+    user_write_io(2, 0);
+
     cyphal_interface = std::shared_ptr<CyphalInterface>(CyphalInterface::create_heap<G4CAN, O1Allocator>(
         NODE_ID,
         &hfdcan1,
@@ -244,7 +248,7 @@ void report_buttons() {
 
     const USR_IO_State io_state = user_read_io();
     buttons_msg.emergency_button.value = (emergency_stat != 0);
-    buttons_msg.user_button.value = io_state.state[4];
+    buttons_msg.user_button.value = !(bool)io_state.state[3] || !(bool)io_state.state[7];
 
     cyphal_interface->send_msg<PWRButtons>(&buttons_msg, BUTTONS_INFO_PORT, &buttons_transfer_id, MICROS_0_1S);
 }
