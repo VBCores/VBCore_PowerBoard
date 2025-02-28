@@ -1,3 +1,6 @@
+// Uncomment the following line if using high power board version ( look for HPWR silk )
+//#define HP_board
+
 #define undervoltage_lockout_voltage            18.0f   // Volts
 #define undervoltage_lockout_hysteresis         1.0f    // Volts
 #define charged_battery_voltage                 25.2f   // Volts

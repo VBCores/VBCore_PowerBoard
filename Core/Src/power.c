@@ -4,7 +4,9 @@
 #include "power.h"
 #include "battery_config.h"
 
-//#define curr_sns_inver
+#ifdef HP_board
+  #define curr_sns_inver
+#endif
 
 // private power control parameters
 const uint32_t bus_start_timeout = 30000u; // timeout for bus output reaching PowerGood status, microseconds
@@ -53,7 +55,6 @@ input_src_stat CHRG;
 input_src_stat *prime_VIN;
 
 input_src_stat *prime_VOUT = NULL;
-
 
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
 #pragma optimize s=none
@@ -249,39 +250,43 @@ void power_control(void)
   }
 #endif
   
-  if( CHRG.raw > 3.0f ) 
+  if( CHRG.raw > undervoltage_lockout_voltage )
   {
     // we're in charging mode
     LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus    
 
-    if( prime_VOUT == NULL )
+    while( prime_VOUT == NULL )
     {
-      LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // disable input channels
+      // protected batteries tend to supply no voltage to terminals in discharged mode. 
+      // to unlock them you have to apply charging voltage first. let's do it!
+      
+      // firstly check the 2nd input
+      LL_GPIO_SetOutputPin(DEMUX_S0_CTL_GPIO_Port, DEMUX_S0_CTL_Pin);
+      LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
       
       __micros_delay( 50000 );
 
-      if( ( VIN2.raw > 10.0f ) && ( VIN2.raw < src_charged_level ) )
+      if( ( VIN2.raw > 10.0f ) && ( VIN2.raw < src_charged_level ) ) // is there a battery?
       {
         prime_VOUT = &VIN2;
-        
-        LL_GPIO_SetOutputPin(DEMUX_S0_CTL_GPIO_Port, DEMUX_S0_CTL_Pin);
-        LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
-        
-        __micros_delay( 50000 );
+        break;
       }
-      else if( ( VIN3.raw > 10.0f ) && ( VIN3.raw < src_charged_level ) )
+      
+      // now the 3rd input
+      LL_GPIO_ResetOutputPin(DEMUX_S0_CTL_GPIO_Port, DEMUX_S0_CTL_Pin);
+      LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
+      
+      __micros_delay( 50000 );
+      
+      if( ( VIN3.raw > 10.0f ) && ( VIN3.raw < src_charged_level ) ) // is there a battery?
       {
         prime_VOUT = &VIN3;
-
-        LL_GPIO_ResetOutputPin(DEMUX_S0_CTL_GPIO_Port, DEMUX_S0_CTL_Pin);
-        LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // set channels output control
-
-        __micros_delay( 50000 );
+        break;
       }
-      else
-      {
-        return ;
-      }
+      
+      // seems like no batteries connected
+      LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // disable input channels
+      return ;
     }
     
     static float my_current = 0.0f;
@@ -455,7 +460,7 @@ static void indication(void)
   // warning is needed on battery power only
   if( !VIN1.attached )
   {
-    if( prime_VIN->LPF < uvlo_level + uvlo_hyst )
+    if( prime_VIN !=NULL && prime_VIN->LPF < uvlo_level + uvlo_hyst )
     {
       if( buzzer_mutex < WARNING )
       {
