@@ -111,6 +111,8 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value);
 /* Private defines -----------------------------------------------------------*/
 #define SW3_Pin LL_GPIO_PIN_4
 #define SW3_GPIO_Port GPIOA
+#define HPBRD_PC_CTL_Pin LL_GPIO_PIN_5
+#define HPBRD_PC_CTL_GPIO_Port GPIOA
 #define SW2_Pin LL_GPIO_PIN_5
 #define SW2_GPIO_Port GPIOC
 #define S1_grn_Pin LL_GPIO_PIN_2
