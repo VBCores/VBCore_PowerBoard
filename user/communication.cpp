@@ -168,22 +168,33 @@ void user_setup(void) {
 
     static FDCAN_FilterTypeDef sFilterConfig;
 
+    uint32_t filter_index = 0;
     HAL_IMPORTANT(apply_filter(
+        filter_index,
         &hfdcan1,
         &sFilterConfig,
         node_info_reader->make_filter(NODE_ID)
     ))
+
+    filter_index = 1;
     HAL_IMPORTANT(apply_filter(
+        filter_index,
         &hfdcan1,
         &sFilterConfig,
         registers_handler->make_filter(NODE_ID)
     ))
+
+    filter_index = 2;
     HAL_IMPORTANT(apply_filter(
+        filter_index,
         &hfdcan1,
         &sFilterConfig,
         beeper_provider->make_filter(NODE_ID)
     ))
+
+    filter_index = 3;
     HAL_IMPORTANT(apply_filter(
+        filter_index,
         &hfdcan1,
         &sFilterConfig,
         led_provider->make_filter(NODE_ID)

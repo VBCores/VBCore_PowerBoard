@@ -61,7 +61,7 @@ TIM_HandleTypeDef htim16;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint64_t TIM7_ITs = 0; // counter of microseconds timesource ITs
+uint64_t TIM7_ITs = 0; // counter of microseconds time-source ITs
 
 /********** User accessible variables **********/
 uint8_t prime = 0; // selected power source variable. RW
@@ -91,8 +91,8 @@ static void MX_SPI2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM15_Init(void);
-static void MX_FDCAN1_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -103,13 +103,13 @@ static void MX_IWDG_Init(void);
 // this function runs once
 __weak void user_setup(void)
 {
-  
+
 }
 
 // this function runs in an infinite loop
 __weak void user_spin(void)
 {
-  
+
 }
 /* USER CODE END 0 */
 
@@ -152,10 +152,10 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM8_Init();
   MX_TIM15_Init();
-  MX_FDCAN1_Init();
   MX_IWDG_Init();
+  MX_FDCAN1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim7); // enable microseconds timesource. DO NOT MODIFY!
+  HAL_TIM_Base_Start_IT(&htim7); // enable microseconds time-source. DO NOT MODIFY!
   power_setup(); // configuration of power sources control. DO NOT MODIFY!
 
   // enable user IO periphery
@@ -163,11 +163,11 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-  
+
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);  
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
 
   user_setup();
   /* USER CODE END 2 */
@@ -849,6 +849,9 @@ static void MX_GPIO_Init(void)
   LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
 
   /**/
+  LL_GPIO_ResetOutputPin(HPBRD_PC_CTL_GPIO_Port, HPBRD_PC_CTL_Pin);
+
+  /**/
   LL_GPIO_ResetOutputPin(S1_grn_GPIO_Port, S1_grn_Pin);
 
   /**/
@@ -883,6 +886,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(SW3_GPIO_Port, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = HPBRD_PC_CTL_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(HPBRD_PC_CTL_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = SW2_Pin;
@@ -1009,19 +1020,19 @@ static void MX_GPIO_Init(void)
 USR_IO_State user_read_io(void)
 {
   USR_IO_State ret = {0};
-  
+
   LL_GPIO_ResetOutputPin(SHIFT_LD_GPIO_Port, SHIFT_LD_Pin);
   micros_delay(2);
   LL_GPIO_SetOutputPin(SHIFT_LD_GPIO_Port, SHIFT_LD_Pin);
-  
+
   uint8_t SPI_RX = 0;
   HAL_SPI_Receive(&hspi2, &SPI_RX, 1, 1000);
-  
+
   for( uint8_t i = 0; i < 8; i++ )
   {
     ret.state[i] = (SPI_RX & ( 1 << i )) >> i;
   }
-  
+
   return ret;
 }
 
@@ -1046,15 +1057,15 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value)
     }
 
     __HAL_TIM_SET_COMPARE(&htim3, channel, value);
-    
+
     return 0;
   }
   else if( usr_io >= 4 && usr_io < 8 )
   {
     channel = ( usr_io - 4 )*4;
-    
+
     __HAL_TIM_SET_COMPARE(&htim8, channel, value);
-    
+
     return 0;
   }
   else
@@ -1063,15 +1074,17 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value)
   }
 }
 
-void UART2_printf( const char * format, ... )
+void UART2_printf(const char * format, ...)
 {
-  char buffer[256] = {0};
+  char buffer[256];
   va_list args;
-  va_start (args, format);
-  int len = vsprintf (buffer,format, args);
-  va_end (args);
-  
-  HAL_UART_Transmit(&huart2, (const uint8_t*)buffer, len, 100);
+  va_start(args, format);
+  int len = vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  if (len > 0) {
+      HAL_UART_Transmit(&huart2, (uint8_t*)buffer, len, 100);
+  }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -1088,7 +1101,7 @@ uint64_t micros_64()
 #elif defined ( __GNUC__ ) /*!< GNU Compiler */
 uint64_t __attribute__((optimize("O0"))) micros_64()
 #endif
-{ 
+{
   return (uint64_t)(__HAL_TIM_GET_COUNTER(&htim7) + 50000u * TIM7_ITs);
 }
 
@@ -1112,8 +1125,8 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
-  LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus     
-  
+  LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
+
   LL_GPIO_SetOutputPin(S1_red_GPIO_Port, S1_red_Pin);
   LL_GPIO_SetOutputPin(S2_red_GPIO_Port, S2_red_Pin);
   LL_GPIO_SetOutputPin(S3_red_GPIO_Port, S3_red_Pin);
@@ -1121,8 +1134,8 @@ void Error_Handler(void)
   LL_GPIO_SetOutputPin(S1_grn_GPIO_Port, S1_grn_Pin);
   LL_GPIO_SetOutputPin(S2_grn_GPIO_Port, S2_grn_Pin);
   LL_GPIO_SetOutputPin(S3_grn_GPIO_Port, S3_grn_Pin);
-  
-  UART2_printf( "I've fallen into Error Handler!\r\n");
+
+  UART2_printf("Error handler called, terminating.\r\n");
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)

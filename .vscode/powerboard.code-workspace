@@ -75,7 +75,10 @@
 			"typeindex": "cpp",
 			"typeinfo": "cpp",
 			"variant": "cpp",
-			"bit": "cpp"
-		  }
+			"bit": "cpp",
+			"battery_config.h": "c",
+			"power.h": "c",
+			"main.h": "c"
+		}
 	}
 }

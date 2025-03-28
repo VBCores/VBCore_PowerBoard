@@ -4,7 +4,7 @@
         {
             "name": "Debug Microcontroller - STLink-V2",
             "cwd": "${workspaceFolder}",        //Path from where commands are executed
-            "type": "cortex-debug",             //Debug 
+            "type": "cortex-debug",             //Debug
             "executable": "${command:cmake.launchTargetPath}", //or fixed file path: build/project-name.elf
             "request": "launch",                //Use "attach" to connect to target w/o elf download
             "servertype": "stlink",             //Use stlink setup of cortex-M debug
@@ -20,9 +20,9 @@
                 "samplesPerSecond": 4
             },
 
-            "serverpath": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.macos64_2.1.200.202401191126/tools/bin/ST-LINK_gdbserver",
-            "armToolchainPath": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.macos64_1.0.100.202210260954/tools/bin",
-            "stm32cubeprogrammer": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.macos64_2.1.200.202311302303/tools/bin",
+            "serverpath": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.macos64_2.2.100.202501151542/tools/bin/ST-LINK_gdbserver",
+            "armToolchainPath": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/bin",
+            "stm32cubeprogrammer": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.macos64_2.2.100.202412061334/tools/bin",
 
             /* If you use external loader, add additional arguments */
             //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
