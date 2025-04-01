@@ -93,6 +93,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+extern IWDG_HandleTypeDef hiwdg;
 #define ADC_buf_size 5
 extern uint32_t ADC1_buf[ADC_buf_size];
 

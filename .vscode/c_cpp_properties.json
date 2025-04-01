@@ -2,7 +2,13 @@
 	"configurations": [
         {
             "name": "CMake",
-            "compileCommands": "${workspaceFolder}/compile_commands.json",
+            "compileCommands": "${workspaceFolder}/build/Debug/compile_commands.json",
+            /*"includePath": [
+                "${workspaceFolder}/Drivers/STM32G4xx_HAL_Driver/Inc",
+                "${workspaceFolder}/Core/Inc",
+                "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32G4xx/Include"
+            ],
+            "compilerPath": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/bin/arm-none-eabi-c++",*/
             "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],

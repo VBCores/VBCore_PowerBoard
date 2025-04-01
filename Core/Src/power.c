@@ -12,12 +12,6 @@
 const uint32_t bus_start_timeout = 30000u; // timeout for bus output reaching PowerGood status, microseconds
 const uint8_t emergency_start_threshold = 3u; // number of attempts to start the bus before an emergency shutdown
 
-// user defined power source parameters
-const float uvlo_level = undervoltage_lockout_voltage; // battery discharged voltage level, Volts
-const float uvlo_hyst = undervoltage_lockout_hysteresis; // battery discharged hysteresis, Volts
-const float src_charged_level = charged_battery_voltage; // battery charged voltage level, Volts
-const float nom_chrg_curr = nominal_charge_current;
-
 // user accessible power control parameters
 extern uint8_t prime;
 extern uint8_t pc_enable;
@@ -82,14 +76,14 @@ void power_setup(void)
   __micros_delay(100000);
   HAL_TIM_Base_Start_IT(&htim16); // processes power control logic in TIM16 interrupt
 
-  LL_GPIO_SetOutputPin(HPBRD_PC_CTL_GPIO_Port, HPBRD_PC_CTL_Pin); // enable PC bus for HP board. Does nothing for regularal board.
+  LL_GPIO_SetOutputPin(HPBRD_PC_CTL_GPIO_Port, HPBRD_PC_CTL_Pin); // enable PC bus for HP board. Does nothing for regular board.
 
   UART2_printf(
     "UVLO=%4.1f HYST=%4.1f FULL_CHRG=%4.1f CHRG_CURR=%4.1f \r\n",
-    uvlo_level,
-    uvlo_hyst,
-    src_charged_level,
-    nom_chrg_curr
+    get_uvlo_level(),
+    get_uvlo_hyst(),
+    get_src_charged_level(),
+    get_nom_chrg_curr()
   );
 }
 
@@ -128,11 +122,11 @@ static uint8_t check_battery_input( input_src_stat * VIN )
     VIN->LPF = VIN->raw;
   }
 
-  if( VIN->LPF < uvlo_level )
+  if( VIN->LPF < get_uvlo_level() )
   {
     VIN->charged = 0;
   }
-  else if( VIN->LPF > uvlo_level + uvlo_hyst )
+  else if( VIN->LPF > get_uvlo_level() + get_uvlo_hyst() )
   {
     VIN->charged = 1;
   }
@@ -216,7 +210,7 @@ void power_control(void)
         timestamp = micros_64();
         while( LL_GPIO_IsInputPinSet( BUS_PG_GPIO_Port, BUS_PG_Pin) ) // wait until PG pin goes low ( PG = OK )
         {
-          if( micros_64() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
+          if( micros_64() > timestamp + bus_start_timeout ) // the bus didn't reach PG status in allotted time = abort operation
           {
             LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
             LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -252,7 +246,7 @@ void power_control(void)
   }
 #endif
 
-  if( CHRG.raw > undervoltage_lockout_voltage )
+  if( CHRG.raw > get_uvlo_level() )
   {
     // we're in charging mode
     LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -268,7 +262,7 @@ void power_control(void)
 
       __micros_delay( 50000 );
 
-      if( ( VIN2.raw > 10.0f ) && ( VIN2.raw < src_charged_level ) ) // is there a battery?
+      if( ( VIN2.raw > 10.0f ) && ( VIN2.raw < get_src_charged_level() ) ) // is there a battery?
       {
         prime_VOUT = &VIN2;
         break;
@@ -280,7 +274,7 @@ void power_control(void)
 
       __micros_delay( 50000 );
 
-      if( ( VIN3.raw > 10.0f ) && ( VIN3.raw < src_charged_level ) ) // is there a battery?
+      if( ( VIN3.raw > 10.0f ) && ( VIN3.raw < get_src_charged_level() ) ) // is there a battery?
       {
         prime_VOUT = &VIN3;
         break;
@@ -295,7 +289,7 @@ void power_control(void)
 
     my_current = my_current - (0.1f * (my_current - get_actual_current()));
 
-    if( my_current < ( -1.3f * nom_chrg_curr ) )
+    if( my_current < ( -1.3f * get_nom_chrg_curr() ) )
     {
       // charging overcurrent event
       LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
@@ -305,7 +299,7 @@ void power_control(void)
       Error_Handler();
     }
 
-    if( get_actual_current() > ( -0.075f * nom_chrg_curr ))
+    if( get_actual_current() > ( -0.075f * get_nom_chrg_curr() ))
     {
       // battery takes no current = battery is charged
       prime_VOUT = NULL;
@@ -324,7 +318,7 @@ void power_control(void)
       }
       else if( VIN3.charged )
       {
-        prime = 1; // switch ptime channel to VIN3
+        prime = 1; // switch prime channel to VIN3
         prime_VIN = &VIN3;
       }
       else
@@ -340,7 +334,7 @@ void power_control(void)
       }
       else if( VIN2.charged )
       {
-        prime = 0; // switch ptime channel to VIN2
+        prime = 0; // switch prime channel to VIN2
         prime_VIN = &VIN2;
       }
       else
@@ -371,7 +365,7 @@ void power_control(void)
         timestamp = micros_64();
         while( LL_GPIO_IsInputPinSet( prime_VIN->PG_port, prime_VIN->PG_pin) ) // wait until PG pin goes low ( PG = OK )
         {
-          if( micros_64() > timestamp + 10000 ) // the bus didnt reach PG status in 10 ms = abort operation
+          if( micros_64() > timestamp + 10000 ) // the bus didn't reach PG status in 10 ms = abort operation
           {
             LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
             LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -413,7 +407,7 @@ void power_control(void)
           timestamp = micros_64();
           while( LL_GPIO_IsInputPinSet( BUS_PG_GPIO_Port, BUS_PG_Pin) ) // wait until PG pin goes low ( PG = OK )
           {
-            if( micros_64() > timestamp + bus_start_timeout ) // the bus didnt reach PG status in allotted time = abort operation
+            if( micros_64() > timestamp + bus_start_timeout ) // the bus didn't reach PG status in allotted time = abort operation
             {
               LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
               LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
@@ -462,7 +456,7 @@ static void indication(void)
   // warning is needed on battery power only
   if( !VIN1.attached )
   {
-    if( prime_VIN !=NULL && prime_VIN->LPF < uvlo_level + uvlo_hyst )
+    if( prime_VIN !=NULL && prime_VIN->LPF < (get_uvlo_level() + get_uvlo_hyst()) )
     {
       if( buzzer_mutex < WARNING )
       {

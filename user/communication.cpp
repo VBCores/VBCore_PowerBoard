@@ -2,6 +2,7 @@
 #include "hmi.h"
 
 #include "voltbro/utils.hpp"
+#include "flash.hpp"
 
 #include "cyphal/cyphal.h"
 #include <cyphal/allocators/o1/o1_allocator.h>

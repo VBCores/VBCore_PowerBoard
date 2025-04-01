@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "power.h"
+#include "battery_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -155,7 +156,12 @@ int main(void)
   MX_IWDG_Init();
   MX_FDCAN1_Init();
   /* USER CODE BEGIN 2 */
+
+  __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_4);
+  while (__HAL_FLASH_GET_LATENCY() != FLASH_LATENCY_4) {}
+
   HAL_TIM_Base_Start_IT(&htim7); // enable microseconds time-source. DO NOT MODIFY!
+  load_config(); // load power config from FLASH. DO NOT MODIFY!
   power_setup(); // configuration of power sources control. DO NOT MODIFY!
 
   // enable user IO periphery

@@ -3,7 +3,6 @@
     "**/tmp/**": true,
     "**/node_modules/**": true,
     "**/.git/objects/**": true,
-    "**/build/**": true,
     "**/log/**": true,
     "**/repo.key**": true,
     "**/.run/**": true,
