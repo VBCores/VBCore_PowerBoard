@@ -255,8 +255,21 @@ void power_control(void)
   if( CHRG.raw > undervoltage_lockout_voltage )
   {
     // we're in charging mode
-    LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus    
-
+    
+#ifdef bus_off_charging
+    LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus   
+#else
+    // user defines if output power bus should be disabled during charge process
+    if( bus_enable )
+    {
+      LL_GPIO_SetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // enable power bus   
+    }
+    else
+    {
+      LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus   
+    }
+#endif
+    
     while( prime_VOUT == NULL )
     {
       // protected batteries tend to supply no voltage to terminals in discharged mode. 
