@@ -1,3 +1,5 @@
+#include "stdbool.h"
+
 // Uncomment the following line if using high power board version ( look for HPWR silk )
 #define HP_board
 
@@ -22,6 +24,7 @@ float get_uvlo_level();
 float get_uvlo_hyst();
 float get_src_charged_level();
 float get_nom_chrg_curr();
+bool is_bus_off_while_charging();
 
 #ifdef __cplusplus
 }

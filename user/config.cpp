@@ -10,6 +10,10 @@
 ReservedObject<FlashStorage> storage;
 ConfigData config_data;
 
+bool is_bus_off_while_charging() {
+    return !config_data.auto_disarm;
+}
+
 float get_uvlo_level() {
     return config_data.uvlo_level;
 }
