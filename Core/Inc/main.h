@@ -40,7 +40,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -115,6 +115,9 @@ extern uint64_t buzzer_period_stamp;
 uint64_t micros_64(void);
 void micros_delay( uint64_t delay );
 void UART2_printf( const char * format, ... );
+
+void set_bus_state(bool state);
+void set_pc_state(bool state);
 
 void user_setup(void);
 void user_spin(void);

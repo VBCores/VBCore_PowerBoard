@@ -1032,6 +1032,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void set_bus_state(bool state) {
+  bus_enable = state ? 1 : 0;
+}
+void set_pc_state(bool state) {
+  pc_enable = state ? 1 : 0;
+}
+
 USR_IO_State user_read_io(void)
 {
   USR_IO_State ret = {0};

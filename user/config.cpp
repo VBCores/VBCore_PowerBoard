@@ -92,8 +92,8 @@ static constexpr std::string SPEED_PRESET_PARAM = "speed_preset";
 static constexpr std::string AUTO_DISARM_PARAM = "auto_disarm";
 static constexpr std::string UVLO_LEVEL_PARAM = "uvlo_level";
 static constexpr std::string UVLO_HYST_PARAM = "uvlo_hyst";
+static constexpr std::string NOMINAL_CHARGE_PARAM = "charge_current";
 static constexpr std::string CHARGED_LEVEL_PARAM = "charged_level";
-//static constexpr std::string NOMINAL_CHARGE_CUR_PARAM = "nominal_charge_cur";
 
 enum class AppState {
     RUNNING,
@@ -104,12 +104,14 @@ static AppState app_state = AppState::RUNNING;
 
 void enable_config_mode() {
     app_state = AppState::CONFIG;
-
+    set_bus_state(false);
+    set_pc_state(false);
 }
 
 void disable_config_mode() {
     app_state = AppState::RUNNING;
-
+    set_bus_state(true);
+    set_pc_state(true);
 }
 
 
@@ -125,6 +127,9 @@ void process_command(std::string command) {
     };
 
     command.erase(command.find_last_not_of(" \t\n\r") + 1);
+    if (command.size() == 0) {
+        return;
+    }
 
     if (command == "START") {
         enable_config_mode();
@@ -139,7 +144,7 @@ void process_command(std::string command) {
         );
         append_response("node_id:%d\n\r", config_data.node_id);
         append_response("speed_preset:%d\n\r", to_underlying(config_data.speed_preset));
-        append_response("auto_disarm:%b\n\r", config_data.auto_disarm);
+        append_response("auto_disarm:%d\n\r", config_data.auto_disarm);
 
         goto send;
     }
@@ -148,7 +153,7 @@ void process_command(std::string command) {
     }
     else if (command == "STOP") {
         disable_config_mode();
-        append_response("NOTE: config not applied! To apply, run APPLY\n\r");
+        append_response("NOTE: config changes not applied! To apply, run APPLY or reset controller\n\r");
         goto send;
     }
 
@@ -185,9 +190,9 @@ void process_command(std::string command) {
             else if (param == UVLO_HYST_PARAM) {
                 append_response("uvlo_hyst:%4.2f\n\r", config_data.uvlo_hyst);
             }
-            /*else if (param == NOMINAL_CHARGE_CUR_PARAM) {
-                UART2_printf("nominal_charge_current:%4.2f\n\r", config_data.nominal_charge_current);
-            }*/
+            else if (param == NOMINAL_CHARGE_PARAM) {
+                append_response("nominal_charge_current:%4.2f\n\r", config_data.nominal_charge_current);
+            }
             else if (param == CHARGED_LEVEL_PARAM) {
                 append_response("charged_level:%4.2f\n\r", config_data.src_charged_level);
             }
@@ -198,15 +203,50 @@ void process_command(std::string command) {
         else {
             bool do_save = true;
             // SET
+
+            int new_int_value;
+            float new_float_value;
+            bool is_converted = false;
+            if (param == NODE_ID_PARAM ||
+                param == SPEED_PRESET_PARAM ||
+                param == AUTO_DISARM_PARAM) {
+                is_converted = safe_stoi(value, new_int_value);
+            }
+            else {
+                is_converted = safe_stof(value, new_float_value);
+            }
+            if (!is_converted) {
+                append_response("ERROR: Invalid value\n\r");
+                goto send;
+            }
+
             if (param == NODE_ID_PARAM) {
-                int new_value;
-                bool is_converted = safe_stoi(value, new_value);
-                if (!is_converted) {
-                    append_response("ERROR: Invalid value\n\r");
-                    goto send;
-                }
-                config_data.node_id = static_cast<CanardNodeID>(new_value);
+                config_data.node_id = static_cast<CanardNodeID>(new_int_value);
                 append_response("OK: node_id:%d\n\r", config_data.node_id);
+            }
+            else if (param == SPEED_PRESET_PARAM) {
+                config_data.speed_preset = static_cast<CANSpeedPreset>(new_int_value);
+                append_response("OK: speed_preset:%d\n\r", config_data.speed_preset);
+            }
+            else if (param == AUTO_DISARM_PARAM) {
+                config_data.auto_disarm = static_cast<bool>(new_int_value);
+                append_response("OK: auto_disarm:%d\n\r", config_data.auto_disarm);
+            }
+            else if (param == UVLO_LEVEL_PARAM) {
+                config_data.uvlo_level = new_float_value;
+                append_response("OK: uvlo_level:%4.2f\n\r", config_data.uvlo_level);
+            }
+            else if (param == UVLO_HYST_PARAM) {
+                config_data.uvlo_hyst = new_float_value;
+                append_response("OK: uvlo_hyst:%4.2f\n\r", config_data.uvlo_hyst);
+            }
+            else if (param == CHARGED_LEVEL_PARAM) {
+                config_data.src_charged_level = new_float_value;
+                append_response("OK: charged_level:%4.2f\n\r", config_data.src_charged_level);
+            }
+            else if (param == NOMINAL_CHARGE_PARAM) {
+                config_data.nominal_charge_current = new_float_value;
+                append_response("OK: nominal_charge_current:%4.2f\n\r", config_data.nominal_charge_current);
             }
             else {
                 append_response("ERROR: Unknown parameter\n\r");
