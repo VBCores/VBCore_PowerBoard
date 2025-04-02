@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "power.h"
 #include "battery_config.h"
 /* USER CODE END Includes */
@@ -60,6 +61,7 @@ TIM_HandleTypeDef htim15;
 TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 uint64_t TIM7_ITs = 0; // counter of microseconds time-source ITs
@@ -832,8 +834,11 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
 }
 
@@ -1080,16 +1085,17 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value)
   }
 }
 
+char uart_tx_buffer[256];
 void UART2_printf(const char * format, ...)
 {
-  char buffer[256];
+
   va_list args;
   va_start(args, format);
-  int len = vsnprintf(buffer, sizeof(buffer), format, args);
+  int len = vsnprintf(uart_tx_buffer, sizeof(uart_tx_buffer), format, args);
   va_end(args);
 
   if (len > 0) {
-      HAL_UART_Transmit(&huart2, (uint8_t*)buffer, len, 100);
+      HAL_UART_Transmit_DMA(&huart2, (uint8_t*)uart_tx_buffer, len);
   }
 }
 

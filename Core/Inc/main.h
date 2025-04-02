@@ -94,6 +94,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 extern IWDG_HandleTypeDef hiwdg;
+extern UART_HandleTypeDef huart2;
+
 #define ADC_buf_size 5
 extern uint32_t ADC1_buf[ADC_buf_size];
 

@@ -1,26 +1,14 @@
 #include "main.h"
 
-#include "flash.hpp"
+#include <string>
+
 #include "battery_config.h"
+#include "communication.h"
 
 #include <voltbro/utils.hpp>
 
 ReservedObject<FlashStorage> storage;
-
-struct alignas(8) ConfigData {
-    //static constexpr uint32_t TYPE_ID = 0x12345678;
-    static constexpr uint32_t TYPE_ID = 0x01234567;
-    uint32_t type_id;              // 4 bytes
-
-    float uvlo_level;              // 4 bytes
-    float uvlo_hyst;               // 4 bytes
-    float src_charged_level;       // 4 bytes
-    float nominal_charge_current;  // 4 bytes
-
-    uint8_t _padding[4];           // 4 bytes
-};
-static_assert(sizeof(ConfigData) % 8 == 0, "Size must be multiple of 8 bytes for FLASH operations");
-static ConfigData config_data;
+ConfigData config_data;
 
 float get_uvlo_level() {
     return config_data.uvlo_level;
@@ -65,4 +53,11 @@ void load_config() {
 
         save_config();
     }
+}
+
+void process_command(std::string command) {
+#ifdef DEBUG
+    UART2_printf("Received: <%s> \n\r", command.c_str());
+    //UART2_printf("Very long receive confirmation, definitely longer than 32 bytes! \n\r");
+#endif
 }

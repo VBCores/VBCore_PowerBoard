@@ -35,7 +35,6 @@ file(GLOB_RECURSE LIBCXXCANARD_SOURCES "Drivers/libcxxcanard/cyphal/*.cpp" "Driv
 file(GLOB_RECURSE LIBVOLTBRO_SOURCES "Drivers/libvoltbro/*.cpp")
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/power.c
-    Core/Src/config.cpp
     ${USER_SOURCES}
     ${LIBVOLTBRO_SOURCES}
     ${LIBCXXCANARD_SOURCES}

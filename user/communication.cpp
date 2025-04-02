@@ -2,9 +2,10 @@
 #include "hmi.h"
 
 #include "voltbro/utils.hpp"
-#include "flash.hpp"
+#include "battery_config.h"
+#include "communication.h"
 
-#include "cyphal/cyphal.h"
+#include <cyphal/cyphal.h>
 #include <cyphal/allocators/o1/o1_allocator.h>
 #include <cyphal/providers/G4CAN.h>
 #include <cyphal/node/registers_handler.hpp>
@@ -212,6 +213,8 @@ void user_setup(void) {
 
     _is_cyphal_on = true;
     CYPHAL_MODE = uavcan_node_Mode_1_0_OPERATIONAL;
+
+    start_uart_recv_it(&huart2);
 }
 
 void report_battery() {
@@ -290,4 +293,30 @@ void user_spin(void) {
     micros current_micros = micros_64();
     comms_handler(current_micros);
     hmi_handler(current_micros);
+}
+
+static constexpr uint16_t UART_RX_BUFFER_SIZE = 32;
+char uart_rx_buffer[UART_RX_BUFFER_SIZE + 1];
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
+    uart_rx_buffer[UART_RX_BUFFER_SIZE] = '\0';
+    auto command_string = std::string(uart_rx_buffer);
+    process_command(command_string);
+    start_uart_recv_it(huart);
+}
+
+void start_uart_recv_it(UART_HandleTypeDef* huart) {
+    std::memset(uart_rx_buffer, '\0', UART_RX_BUFFER_SIZE + 1);
+
+    /*
+    / If TX uses DMA, next line is not needed,
+    / if TX is IT or direct, next line is required due to bug in HAL.
+    / Kept here so I don't forget
+    */
+   //HAL_UART_Abort_IT(&huart2);
+
+    auto status = HAL_UART_Receive_IT(
+        huart,
+        reinterpret_cast<uint8_t*>(uart_rx_buffer),
+        UART_RX_BUFFER_SIZE
+    );
 }
