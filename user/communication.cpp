@@ -297,8 +297,8 @@ void user_spin(void) {
 
 static constexpr uint16_t UART_RX_BUFFER_SIZE = 32;
 char uart_rx_buffer[UART_RX_BUFFER_SIZE + 1];
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
-    uart_rx_buffer[UART_RX_BUFFER_SIZE] = '\0';
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t size) {
+    uart_rx_buffer[size] = '\0';
     auto command_string = std::string(uart_rx_buffer);
     process_command(command_string);
     start_uart_recv_it(huart);
@@ -314,7 +314,7 @@ void start_uart_recv_it(UART_HandleTypeDef* huart) {
     */
    //HAL_UART_Abort_IT(&huart2);
 
-    auto status = HAL_UART_Receive_IT(
+    auto status = HAL_UARTEx_ReceiveToIdle_DMA(
         huart,
         reinterpret_cast<uint8_t*>(uart_rx_buffer),
         UART_RX_BUFFER_SIZE

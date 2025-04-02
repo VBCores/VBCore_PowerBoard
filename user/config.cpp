@@ -46,18 +46,29 @@ void load_config() {
     if (config_data.type_id != ConfigData::TYPE_ID) {
         // initialize with default values
         config_data.type_id = ConfigData::TYPE_ID;
+
         config_data.uvlo_level = DEFAULT_UVLO_LEVEL;
         config_data.uvlo_hyst = DEFAULT_UVLO_HYST;
         config_data.src_charged_level = DEFAULT_SRC_CHARGED_LEVEL;
         config_data.nominal_charge_current = DEFAULT_NOMINAL_CHARGE_CURRENT;
 
+        config_data.node_id = 9;
+        config_data.speed_preset = CANSpeedPreset::NOM1000_DATA8000;
+        config_data.auto_disarm = false;
+
         save_config();
     }
 }
 
+enum class AppState {
+    RUNNING,
+    CONFIG
+};
+
+static AppState app_state = AppState::RUNNING;
+
 void process_command(std::string command) {
 #ifdef DEBUG
     UART2_printf("Received: <%s> \n\r", command.c_str());
-    //UART2_printf("Very long receive confirmation, definitely longer than 32 bytes! \n\r");
 #endif
 }
