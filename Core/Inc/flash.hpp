@@ -146,7 +146,7 @@ public:
         while (IWDG->SR != 0) {  // waiting for timing settings to apply
             _hiwdg->Instance->KR = 0xAAAA;
         }
-        HAL_Delay(5);
+        //HAL_Delay(5);
         status = execute_flash_operation([&]() {
             HAL_FLASH_Unlock();
             auto flash_op_st = HAL_OK;
