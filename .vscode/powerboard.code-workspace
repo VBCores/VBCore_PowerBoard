@@ -86,7 +86,6 @@
 			"numbers": "cpp",
 			"semaphore": "cpp",
 			"stop_token": "cpp",
-			"flash.hpp": "c",
 			"stm32g4xx_ll_system.h": "c",
 			"stm32g4xx_ll_gpio.h": "c",
 			"stm32g4xx_hal.h": "c"
