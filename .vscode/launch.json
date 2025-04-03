@@ -12,7 +12,7 @@
             "interface": "swd",                 //Interface setup
             "serialNumber": "",                 //Set ST-Link ID if you use multiple at the same time
             "runToEntryPoint": "main",          //Run to main and stop there
-            //"svdFile": "STM32H73x.svd",         //SVD file to see reisters
+            "svdFile": "${workspaceFolder}/.vscode/STM32G474.svd",  //SVD file to see reisters
             "v1": false,
             "showDevDebugOutput": "both",
             "liveWatch": {

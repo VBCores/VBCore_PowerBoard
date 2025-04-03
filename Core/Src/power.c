@@ -77,14 +77,6 @@ void power_setup(void)
   HAL_TIM_Base_Start_IT(&htim16); // processes power control logic in TIM16 interrupt
 
   LL_GPIO_SetOutputPin(HPBRD_PC_CTL_GPIO_Port, HPBRD_PC_CTL_Pin); // enable PC bus for HP board. Does nothing for regular board.
-
-  UART2_printf(
-    "UVLO=%4.1f HYST=%4.1f FULL_CHRG=%4.1f CHRG_CURR=%4.1f \r\n",
-    get_uvlo_level(),
-    get_uvlo_hyst(),
-    get_src_charged_level(),
-    get_nom_chrg_curr()
-  );
 }
 
 static inline float adc_voltage(uint8_t channel)

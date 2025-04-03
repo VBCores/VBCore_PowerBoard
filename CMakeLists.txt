@@ -22,37 +22,60 @@ enable_language(C ASM)
 project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
-add_executable(${CMAKE_PROJECT_NAME})
+
+set(REGULAR_FIRMWARE ${CMAKE_PROJECT_NAME}_Regular)
+set(HIGHPOWER_FIRMWARE ${CMAKE_PROJECT_NAME}_HighPower)
+SET(TARGETS_LIST "${REGULAR_FIRMWARE};${HIGHPOWER_FIRMWARE}")
+
+foreach (TARGET_NAME IN LISTS TARGETS_LIST)
+    add_executable(${TARGET_NAME})
+endforeach()
 
 add_subdirectory(cmake/stm32cubemx)
 
-target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined library search paths
-)
+foreach (TARGET_NAME IN LISTS TARGETS_LIST)
+    target_link_directories(${TARGET_NAME} PRIVATE
+        # Add user defined library search paths
+    )
+endforeach()
+
+
 
 file(GLOB_RECURSE USER_SOURCES "user/*.cpp")
 file(GLOB_RECURSE LIBCXXCANARD_SOURCES "Drivers/libcxxcanard/cyphal/*.cpp" "Drivers/libcxxcanard/libs/*.c")
 file(GLOB_RECURSE LIBVOLTBRO_SOURCES "Drivers/libvoltbro/*.cpp")
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    Core/Src/power.c
-    ${USER_SOURCES}
-    ${LIBVOLTBRO_SOURCES}
-    ${LIBCXXCANARD_SOURCES}
-)
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    user
-    Drivers/libcxxcanard
-    Drivers/libcxxcanard/libs
-    Drivers/libvoltbro
-)
+foreach (TARGET_NAME IN LISTS TARGETS_LIST)
+    target_sources(${TARGET_NAME} PRIVATE
+        Core/Src/power.c
+        ${USER_SOURCES}
+        ${LIBVOLTBRO_SOURCES}
+        ${LIBCXXCANARD_SOURCES}
+    )
+endforeach()
 
-target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+foreach (TARGET_NAME IN LISTS TARGETS_LIST)
+    target_include_directories(${TARGET_NAME} PRIVATE
+        user
+        Drivers/libcxxcanard
+        Drivers/libcxxcanard/libs
+        Drivers/libvoltbro
+    )
+endforeach()
+
+foreach (TARGET_NAME IN LISTS TARGETS_LIST)
+    target_compile_definitions(${TARGET_NAME} PRIVATE
     # Add user defined symbols
+    )
+endforeach()
+target_compile_definitions(${HIGHPOWER_FIRMWARE} PUBLIC
+    -DHP_board
 )
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
-    stm32cubemx
-)
+foreach (TARGET_NAME IN LISTS TARGETS_LIST)
+    target_link_libraries(${TARGET_NAME} PRIVATE
+        stm32cubemx
+    )
+endforeach()
 
 add_compile_options(
     -mfloat-abi=hard   # Use hardware FPU
@@ -63,8 +86,10 @@ set(
     "${CMAKE_EXE_LINKER_FLAGS} -mfloat-abi=hard -mfpu=fpv4-sp-d16 -u _printf_float"
 )
 
-add_custom_command(
-    POST_BUILD
-    TARGET ${CMAKE_PROJECT_NAME}
-    COMMAND arm-none-eabi-objcopy -O ihex ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.hex
-)
+foreach (TARGET_NAME IN LISTS TARGETS_LIST)
+    add_custom_command(
+        POST_BUILD
+        TARGET ${TARGET_NAME}
+        COMMAND arm-none-eabi-objcopy -O ihex ${TARGET_NAME}.elf ${TARGET_NAME}.hex
+    )
+endforeach()

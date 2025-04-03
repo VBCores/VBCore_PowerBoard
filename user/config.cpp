@@ -4,11 +4,44 @@
 
 #include "battery_config.h"
 #include "communication.h"
+#include "ResponseAccumulator.hpp"
 
 #include <voltbro/utils.hpp>
 
 ReservedObject<FlashStorage> storage;
 ConfigData config_data;
+
+uint8_t get_nom_prescaler() {
+    switch (config_data.fdcan_nominal_baud) {
+        case FDCANNominalBaud::KHz62:
+            return 16;
+        case FDCANNominalBaud::KHz125:
+            return 8;
+        case FDCANNominalBaud::KHz250:
+            return 4;
+        case FDCANNominalBaud::KHz500:
+            return 2;
+        case FDCANNominalBaud::KHz1000:
+            return 1;
+        default:
+            Error_Handler();
+    }
+}
+
+uint8_t get_data_prescaler() {
+    switch (config_data.fdcan_data_baud) {
+        case FDCANDataBaud::KHz1000:
+            return 8;
+        case FDCANDataBaud::KHz2000:
+            return 4;
+        case FDCANDataBaud::KHz4000:
+            return 2;
+        case FDCANDataBaud::KHz8000:
+            return 1;
+        default:
+            Error_Handler();
+    }
+}
 
 bool is_bus_off_while_charging() {
     return !config_data.auto_disarm;
@@ -37,30 +70,56 @@ void save_config() {
     }
 }
 
+void set_default_config() {
+    config_data.type_id = ConfigData::TYPE_ID;
+    config_data.was_configured = false;
+
+    config_data.uvlo_level = NAN;
+    config_data.uvlo_hyst = NAN;
+    config_data.src_charged_level = NAN;
+    config_data.nominal_charge_current = NAN;
+
+    config_data.node_id = 9;
+    config_data.fdcan_data_baud = FDCANDataBaud::KHz8000;
+    config_data.fdcan_nominal_baud = FDCANNominalBaud::KHz1000;
+    config_data.auto_disarm = true;
+}
+
 void load_config() {
+    UARTResponseAccumulator responses;
+
     storage.create(&hiwdg);
 
     auto status = storage->read<ConfigData>(&config_data, 0);
     if (status != HAL_OK) {
         Error_Handler();
     }
-    UART2_printf("Got config_data type_id: <0x%08lX> \r\n", config_data.type_id);
+    responses.append("Got config_data type_id: <0x%08lX>\r\n", config_data.type_id);
 
     if (config_data.type_id != ConfigData::TYPE_ID) {
-        // initialize with default values
-        config_data.type_id = ConfigData::TYPE_ID;
-
-        config_data.uvlo_level = DEFAULT_UVLO_LEVEL;
-        config_data.uvlo_hyst = DEFAULT_UVLO_HYST;
-        config_data.src_charged_level = DEFAULT_SRC_CHARGED_LEVEL;
-        config_data.nominal_charge_current = DEFAULT_NOMINAL_CHARGE_CURRENT;
-
-        config_data.node_id = 9;
-        config_data.speed_preset = CANSpeedPreset::NOM1000_DATA8000;
-        config_data.auto_disarm = false;
-
-        UART2_printf("Saving config \r\n");
+        set_default_config();
+        responses.append("Saving config...\r\n");
         save_config();
+    }
+
+    if (!config_data.was_configured) {
+        set_bus_state(false);
+        set_pc_state(false);
+        responses.append("Board was not configured!\r\n");
+        HAL_TIM_Base_Start_IT(&htim1);
+    }
+    else {
+        set_bus_state(true);
+        set_pc_state(true);
+        responses.append("Board is configured, starting\r\n");
+        responses.append(
+            "uvlo_level=%4.1f uvlo_hyst=%4.1f charged_level=%4.1f charge_current=%4.1f\n\r",
+            config_data.uvlo_level,
+            config_data.uvlo_hyst,
+            config_data.src_charged_level,
+            config_data.nominal_charge_current
+        );
+        HAL_TIM_Base_Stop_IT(&htim1);
     }
 }
 
@@ -92,7 +151,8 @@ bool safe_stof(const std::string& str, float& out_val) {
 }
 
 static constexpr std::string NODE_ID_PARAM = "node_id";
-static constexpr std::string SPEED_PRESET_PARAM = "speed_preset";
+static constexpr std::string FDCAN_DATA_PARAM = "data_baud";
+static constexpr std::string FDCAN_NOMINAL_PARAM = "nominal_baud";
 static constexpr std::string AUTO_DISARM_PARAM = "auto_disarm";
 static constexpr std::string UVLO_LEVEL_PARAM = "uvlo_level";
 static constexpr std::string UVLO_HYST_PARAM = "uvlo_hyst";
@@ -120,58 +180,58 @@ void disable_config_mode() {
 
 
 void process_command(std::string command) {
-    std::string response_buffer;  // Buffer to accumulate responses
-    auto append_response = [&](const char* fmt, auto... args) {
-        int size = snprintf(nullptr, 0, fmt, args...);
-        if (size <= 0) return;
-
-        size_t prev_size = response_buffer.size();
-        response_buffer.resize(prev_size + size);
-        snprintf(&response_buffer[prev_size], size + 1, fmt, args...);
-    };
+    UARTResponseAccumulator responses;
 
     command.erase(command.find_last_not_of(" \t\n\r") + 1);
     if (command.size() == 0) {
         return;
     }
 
+    bool do_save = false;
+
     if (command == "START") {
         enable_config_mode();
-        append_response("CONFIG MODE ENABLED\n\r");
+        responses.append("CONFIG MODE ENABLED\n\r");
 
-        append_response(
-            "UVLO=%4.1f HYST=%4.1f FULL_CHRG=%4.1f CHRG_CURR=%4.1f\n\r",
-            get_uvlo_level(),
-            get_uvlo_hyst(),
-            get_src_charged_level(),
-            get_nom_chrg_curr()
+        responses.append(
+            "uvlo_level=%4.1f uvlo_hyst=%4.1f charged_level=%4.1f charge_current=%4.1f\n\r",
+            config_data.uvlo_level,
+            config_data.uvlo_hyst,
+            config_data.src_charged_level,
+            config_data.nominal_charge_current
         );
-        append_response("node_id:%d\n\r", config_data.node_id);
-        append_response("speed_preset:%d\n\r", to_underlying(config_data.speed_preset));
-        append_response("auto_disarm:%d\n\r", config_data.auto_disarm);
+        responses.append("node_id:%d\n\r", config_data.node_id);
+        responses.append("data_baud:%d\n\r", to_underlying(config_data.fdcan_data_baud));
+        responses.append("nominal_baud:%d\n\r", to_underlying(config_data.fdcan_nominal_baud));
+        responses.append("auto_disarm:%d\n\r", config_data.auto_disarm);
 
-        goto send;
+        return;
     }
     else if (command == "APPLY") {
         NVIC_SystemReset();
     }
+    else if (command == "RESET") {
+        responses.append("Setting default config\n\r");
+        set_default_config();
+        responses.append("NOTE: config changes not applied! To apply, run APPLY or reset controller\n\r");
+        do_save = true;
+    }
     else if (command == "STOP") {
         disable_config_mode();
-        append_response("NOTE: config changes not applied! To apply, run APPLY or reset controller\n\r");
-        goto send;
+        responses.append("NOTE: config changes not applied! To apply, run APPLY or reset controller\n\r");
+        return;
     }
+    else {
+        // Если не в режиме конфигурации, игнорируем команды (кроме START)
+        if (app_state != AppState::CONFIG) {
+            return;
+        }
 
-    // Если не в режиме конфигурации, игнорируем команды (кроме START)
-    if (app_state != AppState::CONFIG) {
-        goto send;
-    }
-
-    // Обработка запроса параметра (формат "param_name:?")
-    {
+        // Обработка запроса параметра (формат "param_name:?")
         size_t colon_pos = command.find(':');
         if (colon_pos == std::string::npos) {
-            append_response("ERROR: Unknown command\n\r");
-            goto send;
+            responses.append("ERROR: Unknown command\n\r");
+            return;
         }
 
         std::string param = command.substr(0, colon_pos);
@@ -180,39 +240,42 @@ void process_command(std::string command) {
         if (value == "?") {
             // GET
             if (param == NODE_ID_PARAM) {
-                append_response("node_id:%d\n\r", config_data.node_id);
+                responses.append("node_id:%d\n\r", config_data.node_id);
             }
-            else if (param == SPEED_PRESET_PARAM) {
-                append_response("speed_preset:%d\n\r", to_underlying(config_data.speed_preset));
+            else if (param == FDCAN_DATA_PARAM) {
+                responses.append("data_baud:%d\n\r", to_underlying(config_data.fdcan_data_baud));
+            }
+            else if (param == FDCAN_NOMINAL_PARAM) {
+                responses.append("nominal_baud:%d\n\r", to_underlying(config_data.fdcan_nominal_baud));
             }
             else if (param == AUTO_DISARM_PARAM) {
-                append_response("auto_disarm:%d\n\r", config_data.auto_disarm);
+                responses.append("auto_disarm:%d\n\r", config_data.auto_disarm);
             }
             else if (param == UVLO_LEVEL_PARAM) {
-                append_response("uvlo_level:%4.2f\n\r", config_data.uvlo_level);
+                responses.append("uvlo_level:%4.2f\n\r", config_data.uvlo_level);
             }
             else if (param == UVLO_HYST_PARAM) {
-                append_response("uvlo_hyst:%4.2f\n\r", config_data.uvlo_hyst);
+                responses.append("uvlo_hyst:%4.2f\n\r", config_data.uvlo_hyst);
             }
             else if (param == NOMINAL_CHARGE_PARAM) {
-                append_response("nominal_charge_current:%4.2f\n\r", config_data.nominal_charge_current);
+                responses.append("nominal_charge_current:%4.2f\n\r", config_data.nominal_charge_current);
             }
             else if (param == CHARGED_LEVEL_PARAM) {
-                append_response("charged_level:%4.2f\n\r", config_data.src_charged_level);
+                responses.append("charged_level:%4.2f\n\r", config_data.src_charged_level);
             }
             else {
-                append_response("ERROR: Unknown parameter\n\r");
+                responses.append("ERROR: Unknown parameter\n\r");
             }
         }
         else {
-            bool do_save = true;
             // SET
-
+            do_save = true;
             int new_int_value;
             float new_float_value;
             bool is_converted = false;
             if (param == NODE_ID_PARAM ||
-                param == SPEED_PRESET_PARAM ||
+                param == FDCAN_DATA_PARAM ||
+                param == FDCAN_NOMINAL_PARAM ||
                 param == AUTO_DISARM_PARAM) {
                 is_converted = safe_stoi(value, new_int_value);
             }
@@ -220,52 +283,61 @@ void process_command(std::string command) {
                 is_converted = safe_stof(value, new_float_value);
             }
             if (!is_converted) {
-                append_response("ERROR: Invalid value\n\r");
-                goto send;
+                responses.append("ERROR: Invalid value\n\r");
+                return;
             }
 
             if (param == NODE_ID_PARAM) {
                 config_data.node_id = static_cast<CanardNodeID>(new_int_value);
-                append_response("OK: node_id:%d\n\r", config_data.node_id);
+                responses.append("OK: node_id:%d\n\r", config_data.node_id);
             }
-            else if (param == SPEED_PRESET_PARAM) {
-                config_data.speed_preset = static_cast<CANSpeedPreset>(new_int_value);
-                append_response("OK: speed_preset:%d\n\r", config_data.speed_preset);
+            else if (param == FDCAN_DATA_PARAM) {
+                config_data.fdcan_data_baud = static_cast<FDCANDataBaud>(new_int_value);
+                responses.append("OK: data_baud:%d\n\r", config_data.fdcan_data_baud);
+            }
+            else if (param == FDCAN_NOMINAL_PARAM) {
+                config_data.fdcan_nominal_baud = static_cast<FDCANNominalBaud>(new_int_value);
+                responses.append("OK: nominal_baud:%d\n\r", config_data.fdcan_nominal_baud);
             }
             else if (param == AUTO_DISARM_PARAM) {
                 config_data.auto_disarm = static_cast<bool>(new_int_value);
-                append_response("OK: auto_disarm:%d\n\r", config_data.auto_disarm);
+                responses.append("OK: auto_disarm:%d\n\r", config_data.auto_disarm);
             }
             else if (param == UVLO_LEVEL_PARAM) {
                 config_data.uvlo_level = new_float_value;
-                append_response("OK: uvlo_level:%4.2f\n\r", config_data.uvlo_level);
+                responses.append("OK: uvlo_level:%4.2f\n\r", config_data.uvlo_level);
             }
             else if (param == UVLO_HYST_PARAM) {
                 config_data.uvlo_hyst = new_float_value;
-                append_response("OK: uvlo_hyst:%4.2f\n\r", config_data.uvlo_hyst);
+                responses.append("OK: uvlo_hyst:%4.2f\n\r", config_data.uvlo_hyst);
             }
             else if (param == CHARGED_LEVEL_PARAM) {
                 config_data.src_charged_level = new_float_value;
-                append_response("OK: charged_level:%4.2f\n\r", config_data.src_charged_level);
+                responses.append("OK: charged_level:%4.2f\n\r", config_data.src_charged_level);
             }
             else if (param == NOMINAL_CHARGE_PARAM) {
                 config_data.nominal_charge_current = new_float_value;
-                append_response("OK: nominal_charge_current:%4.2f\n\r", config_data.nominal_charge_current);
+                responses.append("OK: nominal_charge_current:%4.2f\n\r", config_data.nominal_charge_current);
             }
             else {
-                append_response("ERROR: Unknown parameter\n\r");
+                responses.append("ERROR: Unknown parameter\n\r");
                 do_save = false;
-            }
-
-            if (do_save) {
-                save_config();
-                append_response("Saved config to FLASH\n\r");
             }
         }
     }
 
-send:
-    if (!response_buffer.empty()) {
-        UART2_printf("%s", response_buffer.c_str());
+    if (do_save) {
+        if (
+            !std::isnan(config_data.uvlo_hyst) &&
+            !std::isnan(config_data.uvlo_level) &&
+            !std::isnan(config_data.src_charged_level) &&
+            !std::isnan(config_data.nominal_charge_current)
+        ) {
+            config_data.was_configured = true;
+            responses.append("All essential parameters set, board will start after APPLY\n\r");
+        }
+
+        save_config();
+        responses.append("Saved config to FLASH\n\r");
     }
 }

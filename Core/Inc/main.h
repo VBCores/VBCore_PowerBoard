@@ -95,6 +95,7 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart2;
+extern TIM_HandleTypeDef htim1;
 
 #define ADC_buf_size 5
 extern uint32_t ADC1_buf[ADC_buf_size];
@@ -118,6 +119,8 @@ void UART2_printf( const char * format, ... );
 
 void set_bus_state(bool state);
 void set_pc_state(bool state);
+uint8_t get_nom_prescaler();
+uint8_t get_data_prescaler();
 
 void user_setup(void);
 void user_spin(void);
@@ -164,6 +167,8 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value);
 #define OE_CTL_GPIO_Port GPIOC
 #define DEMUX_OE_Pin LL_GPIO_PIN_12
 #define DEMUX_OE_GPIO_Port GPIOC
+#define LED1_Pin LL_GPIO_PIN_2
+#define LED1_GPIO_Port GPIOD
 #define DEMUX_S0_CTL_Pin LL_GPIO_PIN_3
 #define DEMUX_S0_CTL_GPIO_Port GPIOB
 #define S3_red_Pin LL_GPIO_PIN_4

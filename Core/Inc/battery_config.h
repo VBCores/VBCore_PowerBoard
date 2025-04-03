@@ -1,20 +1,5 @@
 #include "stdbool.h"
 
-// Uncomment the following line if using high power board version ( look for HPWR silk )
-#define HP_board
-
-#ifndef POWER_DEFAULTS
-#define POWER_DEFAULTS
-// battery discharged voltage level, Volts
-static const float DEFAULT_UVLO_LEVEL = 18.0f;
-// battery discharged hysteresis, Volts
-static const float DEFAULT_UVLO_HYST = 1.0f;
-// battery charged voltage level, Volts
-static const float DEFAULT_SRC_CHARGED_LEVEL = 25.2f;
-// Nominal charge current, Ampere
-static const float DEFAULT_NOMINAL_CHARGE_CURRENT = 3.0f;
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

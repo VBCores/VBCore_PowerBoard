@@ -21,6 +21,7 @@ scratch.ipynb
 !.vscode/*.code-workspace
 !.vscode/.gitignore
 !.vscode/*.dict
+!.vscode/*.svd
 # Xi
 default.profraw
 # Idea

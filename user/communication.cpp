@@ -319,4 +319,7 @@ void start_uart_recv_it(UART_HandleTypeDef* huart) {
         reinterpret_cast<uint8_t*>(uart_rx_buffer),
         UART_RX_BUFFER_SIZE
     );
+    if (status != HAL_OK) {
+        // TODO
+    }
 }
