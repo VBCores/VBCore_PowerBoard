@@ -43,6 +43,21 @@ The board uses a UART-based serial interface to configure parameters and control
 | `charge_current`      | Nominal charging current (A)         | Float   | `2.0`, `5.5`   |
 | `charged_level`       | Battery "charged" voltage level (V)  | Float   | `28.0`, `29.5` |
 
+## FDCAN Baud Rate Configuration
+
+| parameter          | Value Name | Speed    | Numeric Value |
+|---------------------|------------|----------|---------------|
+| `nominal_baud`  | `KHz62`    | 62.5 kHz | `0`           |
+|                     | `KHz125`   | 125 kHz  | `1`           |
+|                     | `KHz250`   | 250 kHz  | `2`           |
+|                     | `KHz500`   | 500 kHz  | `3`           |
+|                     | `KHz1000`  | 1 MHz    | `4`           |
+|---------------------|------------|----------|---------------|
+| `data_baud`     | `KHz1000`  | 1 MHz    | `0`           |
+|                     | `KHz2000`  | 2 MHz    | `1`           |
+|                     | `KHz4000`  | 4 MHz    | `2`           |
+|                     | `KHz8000`  | 8 MHz    | `3`           |
+
 ---
 
 ## **System Commands**
@@ -81,3 +96,4 @@ OK: uvlo_level:23.50
 
 # Apply changes (reboot)
 > APPLY
+```
