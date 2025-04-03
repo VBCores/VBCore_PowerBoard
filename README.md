@@ -1,6 +1,6 @@
 # STM32 Power Distribution Board
 
-> THis is a repo for [VBCore Power Board](https://voltbro.gitbook.io/vbcores/vbcores-hardware/power-board-30a)
+> This is a repo for [VBCore Power Board](https://voltbro.gitbook.io/vbcores/vbcores-hardware/power-board-30a)
 >
 > [Buy here](https://www.vbcores.com/products/powerboard)
 
