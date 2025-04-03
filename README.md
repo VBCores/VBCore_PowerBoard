@@ -1,19 +1,21 @@
-# STM32 Power Distribution Board - UART Configuration Interface
+# STM32 Power Distribution Board
 
 > THis is a repo for [VBCore Power Board](https://voltbro.gitbook.io/vbcores/vbcores-hardware/power-board-30a)
 >
 > [Buy here](https://www.vbcores.com/products/powerboard)
 
+## UART Configuration interface
+
 The board uses a UART-based serial interface to configure parameters and control system behavior.
 
-## **Connection Details**
+### **Connection Details**
 
 - **Baud Rate**: 115200.
 - **Format**: Commands are ASCII strings, terminated with `\r`, `\n`, or spaces (automatically stripped).
 
 ---
 
-## **Command Syntax**
+### **Command Syntax**
 
 - **Enter Config Mode**: Send `START` to enable configuration.
 - **Get Parameter**: `<parameter_name>:?`
@@ -24,7 +26,7 @@ The board uses a UART-based serial interface to configure parameters and control
 
 ---
 
-## **Configuration Workflow**
+### **Configuration Workflow**
 
 1. **Enter Config Mode**: Send `START` to view current settings and unlock configuration.
 2. **Set Parameters**: Use `<param>:<value>` syntax to adjust settings.
@@ -34,7 +36,7 @@ The board uses a UART-based serial interface to configure parameters and control
 
 ---
 
-## **Parameters**
+### **Parameters**
 
 | Parameter            | Description                          | Type    | Example Values |
 |-----------------------|--------------------------------------|---------|----------------|
@@ -47,7 +49,7 @@ The board uses a UART-based serial interface to configure parameters and control
 | `charge_current`      | Nominal charging current (A)         | Float   | `2.0`, `5.5`   |
 | `charged_level`       | Battery "charged" voltage level (V)  | Float   | `28.0`, `29.5` |
 
-## FDCAN Baud Rate Configuration
+### FDCAN Baud Rate Configuration
 
 | parameter          | Value Name | Speed    | Numeric Value |
 |---------------------|------------|----------|---------------|
@@ -64,7 +66,7 @@ The board uses a UART-based serial interface to configure parameters and control
 
 ---
 
-## **System Commands**
+### **System Commands**
 
 | Command   | Description                                                                 |
 |-----------|-----------------------------------------------------------------------------|
@@ -75,7 +77,7 @@ The board uses a UART-based serial interface to configure parameters and control
 
 ---
 
-## **Response Format**
+### **Response Format**
 
 - **Success**: `OK: <param>:<value>` (for set operations).
 - **Error**: `ERROR: <reason>` (e.g., `ERROR: Invalid value`).
@@ -83,7 +85,7 @@ The board uses a UART-based serial interface to configure parameters and control
 
 ---
 
-## **Example Usage**
+### **Example Usage**
 
 ```bash
 # Enter config mode
@@ -101,3 +103,22 @@ OK: uvlo_level:23.50
 # Apply changes (reboot)
 > APPLY
 ```
+
+## FDCAN Cyphal Runtime Interface
+
+### **Publishes:**
+
+| Port ID | Message Type          | Interval   | Description                     |
+|---------|-----------------------|------------|---------------------------------|
+| `7993`  | `voltbro.battery.state`        | 50 ms      | Battery voltage/current status |
+| `8003`  | `voltbro.battery.buttons`          | 50 ms      | Button states (emergency/user)
+| `std`   | `uavcan_diagnostic.Record` | On error | Error diagnostics             |
+
+### **Services:**
+
+| Port ID | Service Type             | Description                  |
+|---------|--------------------------|------------------------------|
+| `172`   | `voltbro.hmi.led_service`      | RGB LED control              |
+| `258`   | `voltbro.hmi.beeper_service`   | Beeper frequency/duration    |
+
+Also all standard interfaces: Heartbeat, NodeInfo, Registers.
