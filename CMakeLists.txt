@@ -22,7 +22,6 @@ enable_language(C ASM)
 project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
-
 set(REGULAR_FIRMWARE ${CMAKE_PROJECT_NAME}_Regular)
 set(HIGHPOWER_FIRMWARE ${CMAKE_PROJECT_NAME}_HighPower)
 SET(TARGETS_LIST "${REGULAR_FIRMWARE};${HIGHPOWER_FIRMWARE}")
@@ -38,8 +37,6 @@ foreach (TARGET_NAME IN LISTS TARGETS_LIST)
         # Add user defined library search paths
     )
 endforeach()
-
-
 
 file(GLOB_RECURSE USER_SOURCES "user/*.cpp")
 file(GLOB_RECURSE LIBCXXCANARD_SOURCES "Drivers/libcxxcanard/cyphal/*.cpp" "Drivers/libcxxcanard/libs/*.c")
