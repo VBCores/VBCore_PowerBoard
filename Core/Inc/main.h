@@ -40,7 +40,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -50,24 +50,31 @@ extern "C" {
   * @brief  State of user IOs.
   * @note   "1" = floating
   *         "0" = connected to ground
-  * @note   call user_read_io() to get current state 
+  * @note   call user_read_io() to get current state
   */
 typedef struct
 {
   uint8_t state[8];
 } USR_IO_State;
 
-typedef struct 
+typedef struct
 {
   float raw;
   float LPF;
   float HPF;
   uint8_t charged;
   uint8_t attached;
-  
+
   uint32_t PG_pin;
   GPIO_TypeDef * PG_port;
 } input_src_stat;
+
+typedef enum {
+    USER = 1,
+    WARNING = 2,
+    ALARM = 3
+} buzzer_mutex_priorities ;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -86,9 +93,34 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-uint64_t micros(void);
+extern IWDG_HandleTypeDef hiwdg;
+extern UART_HandleTypeDef huart2;
+extern TIM_HandleTypeDef htim1;
+
+#define ADC_buf_size 5
+extern uint32_t ADC1_buf[ADC_buf_size];
+
+extern input_src_stat *prime_VIN;
+extern input_src_stat VIN1;
+extern input_src_stat VIN2;
+extern input_src_stat VIN3;
+
+extern uint8_t pc_stat; // PC power bus status. RO
+extern uint8_t bus_stat; // main power bus status. RO
+extern uint8_t emergency_stat;
+
+extern uint8_t buzzer_mutex;
+extern uint64_t buzzer_pulse_stamp;
+extern uint64_t buzzer_period_stamp;
+
+uint64_t micros_64(void);
 void micros_delay( uint64_t delay );
 void UART2_printf( const char * format, ... );
+
+void set_bus_state(bool state);
+void set_pc_state(bool state);
+uint8_t get_nom_prescaler();
+uint8_t get_data_prescaler();
 
 void user_setup(void);
 void user_spin(void);
@@ -135,6 +167,8 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value);
 #define OE_CTL_GPIO_Port GPIOC
 #define DEMUX_OE_Pin LL_GPIO_PIN_12
 #define DEMUX_OE_GPIO_Port GPIOC
+#define LED1_Pin LL_GPIO_PIN_2
+#define LED1_GPIO_Port GPIOD
 #define DEMUX_S0_CTL_Pin LL_GPIO_PIN_3
 #define DEMUX_S0_CTL_GPIO_Port GPIOB
 #define S3_red_Pin LL_GPIO_PIN_4

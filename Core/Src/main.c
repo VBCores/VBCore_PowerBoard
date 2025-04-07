@@ -23,7 +23,9 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "power.h"
+#include "battery_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,10 +47,13 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+FDCAN_HandleTypeDef hfdcan1;
+
 IWDG_HandleTypeDef hiwdg;
 
 SPI_HandleTypeDef hspi2;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
@@ -57,9 +62,11 @@ TIM_HandleTypeDef htim15;
 TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_tx;
+DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-uint64_t TIM7_ITs = 0; // counter of microseconds timesource ITs
+uint64_t TIM7_ITs = 0; // counter of microseconds time-source ITs
 
 /********** User accessible variables **********/
 uint8_t prime = 0; // selected power source variable. RW
@@ -90,6 +97,8 @@ static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM15_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_FDCAN1_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -100,13 +109,13 @@ static void MX_IWDG_Init(void);
 // this function runs once
 __weak void user_setup(void)
 {
-  
+
 }
 
 // this function runs in an infinite loop
 __weak void user_spin(void)
 {
-  
+
 }
 /* USER CODE END 0 */
 
@@ -150,8 +159,15 @@ int main(void)
   MX_TIM8_Init();
   MX_TIM15_Init();
   MX_IWDG_Init();
+  MX_FDCAN1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim7); // enable microseconds timesource. DO NOT MODIFY!
+
+  __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_4);
+  while (__HAL_FLASH_GET_LATENCY() != FLASH_LATENCY_4) {}
+
+  HAL_TIM_Base_Start_IT(&htim7); // enable microseconds time-source. DO NOT MODIFY!
+  load_config(); // load power config from FLASH. DO NOT MODIFY!
   power_setup(); // configuration of power sources control. DO NOT MODIFY!
 
   // enable user IO periphery
@@ -159,11 +175,11 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-  
+
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);  
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
 
   user_setup();
   /* USER CODE END 2 */
@@ -332,6 +348,48 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief FDCAN1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_FDCAN1_Init(void)
+{
+
+  /* USER CODE BEGIN FDCAN1_Init 0 */
+
+  /* USER CODE END FDCAN1_Init 0 */
+
+  /* USER CODE BEGIN FDCAN1_Init 1 */
+  hfdcan1.Init.NominalPrescaler = get_nom_prescaler();
+  hfdcan1.Init.DataPrescaler = get_data_prescaler();
+  /* USER CODE END FDCAN1_Init 1 */
+  hfdcan1.Instance = FDCAN1;
+  hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV2;
+  hfdcan1.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
+  hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
+  hfdcan1.Init.AutoRetransmission = ENABLE;
+  hfdcan1.Init.TransmitPause = ENABLE;
+  hfdcan1.Init.ProtocolException = DISABLE;
+  hfdcan1.Init.NominalSyncJumpWidth = 24;
+  hfdcan1.Init.NominalTimeSeg1 = 55;
+  hfdcan1.Init.NominalTimeSeg2 = 24;
+  hfdcan1.Init.DataSyncJumpWidth = 4;
+  hfdcan1.Init.DataTimeSeg1 = 5;
+  hfdcan1.Init.DataTimeSeg2 = 4;
+  hfdcan1.Init.StdFiltersNbr = 0;
+  hfdcan1.Init.ExtFiltersNbr = 4;
+  hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
+  if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN FDCAN1_Init 2 */
+
+  /* USER CODE END FDCAN1_Init 2 */
+
+}
+
+/**
   * @brief IWDG Initialization Function
   * @param None
   * @retval None
@@ -397,6 +455,53 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 16000-1;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 999;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
 
 }
 
@@ -779,8 +884,14 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 }
 
@@ -800,6 +911,7 @@ static void MX_GPIO_Init(void)
   LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOC);
   LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOA);
   LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
+  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOD);
 
   /**/
   LL_GPIO_ResetOutputPin(HPBRD_PC_CTL_GPIO_Port, HPBRD_PC_CTL_Pin);
@@ -818,6 +930,9 @@ static void MX_GPIO_Init(void)
 
   /**/
   LL_GPIO_ResetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin);
+
+  /**/
+  LL_GPIO_ResetOutputPin(LED1_GPIO_Port, LED1_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(DEMUX_S0_CTL_GPIO_Port, DEMUX_S0_CTL_Pin);
@@ -925,6 +1040,14 @@ static void MX_GPIO_Init(void)
   LL_GPIO_Init(DEMUX_OE_GPIO_Port, &GPIO_InitStruct);
 
   /**/
+  GPIO_InitStruct.Pin = LED1_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(LED1_GPIO_Port, &GPIO_InitStruct);
+
+  /**/
   GPIO_InitStruct.Pin = DEMUX_S0_CTL_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
@@ -970,22 +1093,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void set_bus_state(bool state) {
+  bus_enable = state ? 1 : 0;
+}
+void set_pc_state(bool state) {
+  pc_enable = state ? 1 : 0;
+}
+
 USR_IO_State user_read_io(void)
 {
   USR_IO_State ret = {0};
-  
+
   LL_GPIO_ResetOutputPin(SHIFT_LD_GPIO_Port, SHIFT_LD_Pin);
   micros_delay(2);
   LL_GPIO_SetOutputPin(SHIFT_LD_GPIO_Port, SHIFT_LD_Pin);
-  
+
   uint8_t SPI_RX = 0;
   HAL_SPI_Receive(&hspi2, &SPI_RX, 1, 1000);
-  
+
   for( uint8_t i = 0; i < 8; i++ )
   {
     ret.state[i] = (SPI_RX & ( 1 << i )) >> i;
   }
-  
+
   return ret;
 }
 
@@ -1010,15 +1141,15 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value)
     }
 
     __HAL_TIM_SET_COMPARE(&htim3, channel, value);
-    
+
     return 0;
   }
   else if( usr_io >= 4 && usr_io < 8 )
   {
     channel = ( usr_io - 4 )*4;
-    
+
     __HAL_TIM_SET_COMPARE(&htim8, channel, value);
-    
+
     return 0;
   }
   else
@@ -1027,15 +1158,18 @@ uint8_t user_write_io(uint8_t usr_io, uint8_t value)
   }
 }
 
-void UART2_printf( const char * format, ... )
+char uart_tx_buffer[256];
+void UART2_printf(const char * format, ...)
 {
-  char buffer[256] = {0};
+
   va_list args;
-  va_start (args, format);
-  int len = vsprintf (buffer,format, args);
-  va_end (args);
-  
-  HAL_UART_Transmit(&huart2, (const uint8_t*)buffer, len, 100);
+  va_start(args, format);
+  int len = vsnprintf(uart_tx_buffer, sizeof(uart_tx_buffer), format, args);
+  va_end(args);
+
+  if (len > 0) {
+      HAL_UART_Transmit_DMA(&huart2, (uint8_t*)uart_tx_buffer, len);
+  }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -1044,15 +1178,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   {
     TIM7_ITs++;
   }
+  else if (htim->Instance == TIM1) {
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+  }
 }
 
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
 #pragma optimize s=none
-uint64_t micros()
+uint64_t micros_64()
 #elif defined ( __GNUC__ ) /*!< GNU Compiler */
-uint64_t __attribute__((optimize("O0"))) micros()
+uint64_t __attribute__((optimize("O0"))) micros_64()
 #endif
-{ 
+{
   return (uint64_t)(__HAL_TIM_GET_COUNTER(&htim7) + 50000u * TIM7_ITs);
 }
 
@@ -1063,8 +1200,8 @@ void micros_delay( uint64_t delay )
 void __attribute__((optimize("O0"))) micros_delay( uint64_t delay )
 #endif
 {
-  uint64_t timestamp = micros();
-  while( micros() < timestamp + delay );
+  uint64_t timestamp = micros_64();
+  while( micros_64() < timestamp + delay );
 }
 /* USER CODE END 4 */
 
@@ -1076,8 +1213,8 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   LL_GPIO_SetOutputPin(OE_CTL_GPIO_Port, OE_CTL_Pin); // reset channels output control
-  LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus     
-  
+  LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
+
   LL_GPIO_SetOutputPin(S1_red_GPIO_Port, S1_red_Pin);
   LL_GPIO_SetOutputPin(S2_red_GPIO_Port, S2_red_Pin);
   LL_GPIO_SetOutputPin(S3_red_GPIO_Port, S3_red_Pin);
@@ -1085,8 +1222,8 @@ void Error_Handler(void)
   LL_GPIO_SetOutputPin(S1_grn_GPIO_Port, S1_grn_Pin);
   LL_GPIO_SetOutputPin(S2_grn_GPIO_Port, S2_grn_Pin);
   LL_GPIO_SetOutputPin(S3_grn_GPIO_Port, S3_grn_Pin);
-  
-  UART2_printf( "I've fallen into Error Handler!\r\n");
+
+  UART2_printf("Error handler called, terminating.\r\n");
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)

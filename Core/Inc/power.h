@@ -5,11 +5,7 @@
 extern "C" {
 #endif
 
-typedef enum {
-  USER,
-  WARNING,
-  ALARM
-} buzzer_mutex_priorities ; 
+#include "main.h"
 
 void power_setup(void);
 void power_adc_callback(void);
