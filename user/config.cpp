@@ -11,6 +11,14 @@
 ReservedObject<FlashStorage> storage;
 ConfigData config_data;
 
+enum class AppState {
+    INIT,
+    RUNNING,
+    CONFIG
+};
+
+static AppState app_state = AppState::INIT;
+
 uint8_t get_nom_prescaler() {
     switch (config_data.fdcan_nominal_baud) {
         case FDCANNominalBaud::KHz62:
@@ -41,6 +49,10 @@ uint8_t get_data_prescaler() {
         default:
             Error_Handler();
     }
+}
+
+bool is_app_running() {
+    return app_state == AppState::RUNNING;
 }
 
 bool is_bus_off_while_charging() {
@@ -111,6 +123,7 @@ void load_config() {
     else {
         set_bus_state(true);
         set_pc_state(true);
+        app_state = AppState::RUNNING;
         responses.append("Board is configured, starting\r\n");
         responses.append(
             "uvlo_level=%4.1f uvlo_hyst=%4.1f charged_level=%4.1f charge_current=%4.1f\n\r",
@@ -158,13 +171,6 @@ static constexpr std::string UVLO_LEVEL_PARAM = "uvlo_level";
 static constexpr std::string UVLO_HYST_PARAM = "uvlo_hyst";
 static constexpr std::string NOMINAL_CHARGE_PARAM = "charge_current";
 static constexpr std::string CHARGED_LEVEL_PARAM = "charged_level";
-
-enum class AppState {
-    RUNNING,
-    CONFIG
-};
-
-static AppState app_state = AppState::RUNNING;
 
 void enable_config_mode() {
     app_state = AppState::CONFIG;

@@ -10,6 +10,7 @@ float get_uvlo_hyst();
 float get_src_charged_level();
 float get_nom_chrg_curr();
 bool is_bus_off_while_charging();
+bool is_app_running();
 
 #ifdef __cplusplus
 }

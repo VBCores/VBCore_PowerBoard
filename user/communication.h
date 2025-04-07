@@ -23,7 +23,7 @@ enum class FDCANDataBaud : uint8_t {
 };
 
 struct alignas(8) ConfigData {
-    static constexpr uint32_t TYPE_ID = 0x01234567;
+    static constexpr uint32_t TYPE_ID = 0x12345678;
     uint32_t type_id;                     // 4 bytes
     bool was_configured;                  // 1 byte
 

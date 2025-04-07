@@ -444,7 +444,7 @@ void power_control(void)
         __micros_delay(200000);
       }
 
-      if( buzzer_mutex < ALARM )
+      if( is_app_running() && (buzzer_mutex < ALARM) )
       {
         buzzer_mutex = ALARM;
         buzzer_pulse_stamp = micros_64() + 1000000u;
