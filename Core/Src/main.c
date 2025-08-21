@@ -159,7 +159,6 @@ int main(void)
   MX_TIM8_Init();
   MX_TIM15_Init();
   MX_IWDG_Init();
-  MX_FDCAN1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
@@ -168,6 +167,7 @@ int main(void)
 
   HAL_TIM_Base_Start_IT(&htim7); // enable microseconds time-source. DO NOT MODIFY!
   load_config(); // load power config from FLASH. DO NOT MODIFY!
+  MX_FDCAN1_Init();
   power_setup(); // configuration of power sources control. DO NOT MODIFY!
 
   // enable user IO periphery
