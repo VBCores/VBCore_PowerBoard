@@ -44,5 +44,5 @@ extern ReservedObject<FlashStorage> storage;
 extern ConfigData config_data;
 
 void save_config();
-void start_uart_recv_it(UART_HandleTypeDef*);
+void start_uart_recv_it(UART_HandleTypeDef*, bool clear_buffer = true);
 void process_command(std::string command);
