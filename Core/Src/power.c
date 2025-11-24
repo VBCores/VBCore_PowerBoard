@@ -169,8 +169,8 @@ void power_control(void)
   check_battery_input( &VIN2 );
   check_battery_input( &VIN3 );
 
-  // Check buttons and select prime
-  check_buttons();
+  // Buttons are ignored for automatic prime selection in the new logic
+  // (prime is chosen automatically below based on VIN2/VIN3 states)
 
   if( 16.0f*adc_voltage(2) > 2.0f && LL_GPIO_IsInputPinSet( DEMUX_OE_GPIO_Port, DEMUX_OE_Pin ) )
   {
@@ -312,38 +312,27 @@ void power_control(void)
   {
     prime_VOUT = NULL;
 
-    // select suitable power source based on availability and user request
-    if( prime == 0 )
+    // select suitable power source based on availability
+    // New logic: ignore buttons. If VIN2 and VIN3 both charged -> prefer VIN2.
+    // If only one is charged -> use that one. If none -> no prime_VIN.
+    if (VIN2.charged && VIN3.charged)
     {
-      if( VIN2.charged )
-      {
-        prime_VIN = &VIN2;
-      }
-      else if( VIN3.charged )
-      {
-        prime = 1; // switch prime channel to VIN3
-        prime_VIN = &VIN3;
-      }
-      else
-      {
-        prime_VIN = NULL;
-      }
+      prime = 0; // prefer VIN2 when both available
+      prime_VIN = &VIN2;
+    }
+    else if (VIN2.charged)
+    {
+      prime = 0;
+      prime_VIN = &VIN2;
+    }
+    else if (VIN3.charged)
+    {
+      prime = 1;
+      prime_VIN = &VIN3;
     }
     else
     {
-      if( VIN3.charged )
-      {
-        prime_VIN = &VIN3;
-      }
-      else if( VIN2.charged )
-      {
-        prime = 0; // switch prime channel to VIN2
-        prime_VIN = &VIN2;
-      }
-      else
-      {
-        prime_VIN = NULL;
-      }
+      prime_VIN = NULL;
     }
 
     // switch power rails
