@@ -241,8 +241,7 @@ void power_control(void)
   if( CHRG.raw > get_uvlo_level() )
   {
     // we're in charging mode
-    // there used to be a is_bus_off_while_charging()
-    if (true) {
+    if (is_bus_off_while_charging()) {
       LL_GPIO_ResetOutputPin(BUS_CTL_GPIO_Port, BUS_CTL_Pin); // disable power bus
     }
     else {
